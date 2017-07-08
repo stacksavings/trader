@@ -1,5 +1,8 @@
 package com.stacksavings.client.api.dto;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * 
  * @author jpcol
@@ -7,7 +10,7 @@ package com.stacksavings.client.api.dto;
  */
 public class ChartData {
 	
-	private long date; // 1439006400,
+	private String date; // 1439006400,
 	private int high; // : 50,
 	private double low; // : 0.0045001,
 	private int open; // : 50,
@@ -16,11 +19,15 @@ public class ChartData {
 	private double quoteVolume; // : 54434.7809242,
 	private double weightedAverage; // : 0.00605585
 
-	public long getDate() {
-		return date;
+	public String getDate() {
+		
+		Date dDate=new Date(Long.parseLong(date)*1000);
+		SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return dt.format(dDate);
+		
 	}
 
-	public void setDate(long date) {
+	public void setDate(String date) {
 		this.date = date;
 	}
 

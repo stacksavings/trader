@@ -44,14 +44,14 @@ import java.time.format.DateTimeFormatter;
  */
 public class CsvTicksLoader {
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * @return a time series from Apple Inc. ticks.
      */
-    public static TimeSeries loadAppleIncSeries() {
+    public static TimeSeries loadSeries() {
 
-        InputStream stream = CsvTicksLoader.class.getClassLoader().getResourceAsStream("verge_ticks_from_2017_usd.csv"); //  appleinc_ticks_from_20130101_usd.csv
+        InputStream stream = CsvTicksLoader.class.getClassLoader().getResourceAsStream("chartData.csv"); 
 
         List<Tick> ticks = new ArrayList<>();
 
@@ -78,7 +78,7 @@ public class CsvTicksLoader {
     }
 
     public static void main(String[] args) {
-        TimeSeries series = CsvTicksLoader.loadAppleIncSeries();
+        TimeSeries series = CsvTicksLoader.loadSeries();
 
         System.out.println("Series: " + series.getName() + " (" + series.getSeriesPeriodDescription() + ")");
         System.out.println("Number of ticks: " + series.getTickCount());
