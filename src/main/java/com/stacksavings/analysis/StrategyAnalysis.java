@@ -22,6 +22,9 @@
  */
 package com.stacksavings.analysis;
 
+import com.stacksavings.loaders.CsvTicksLoader;
+import com.stacksavings.strategies.MovingMomentumStrategy;
+
 import eu.verdelhan.ta4j.Strategy;
 import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.TradingRecord;
@@ -35,8 +38,6 @@ import eu.verdelhan.ta4j.analysis.criteria.NumberOfTradesCriterion;
 import eu.verdelhan.ta4j.analysis.criteria.RewardRiskRatioCriterion;
 import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.analysis.criteria.VersusBuyAndHoldCriterion;
-import ta4jexamples.loaders.CsvTradesLoader;
-import ta4jexamples.strategies.MovingMomentumStrategy;
 
 /**
  * This class diplays analysis criterion values after running a trading strategy over a time series.
@@ -46,7 +47,7 @@ public class StrategyAnalysis {
     public static void main(String[] args) {
 
         // Getting the time series
-        TimeSeries series = CsvTradesLoader.loadBitstampSeries();
+        TimeSeries series = CsvTicksLoader.loadSeries();
         // Building the trading strategy
         Strategy strategy = MovingMomentumStrategy.buildStrategy(series);
         // Running the strategy

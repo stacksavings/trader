@@ -22,18 +22,11 @@
  */
 package com.stacksavings.analysis;
 
-import eu.verdelhan.ta4j.Indicator;
-import eu.verdelhan.ta4j.Strategy;
-import eu.verdelhan.ta4j.Decimal;
-import eu.verdelhan.ta4j.Tick;
-import eu.verdelhan.ta4j.TimeSeries;
-import eu.verdelhan.ta4j.TradingRecord;
-import eu.verdelhan.ta4j.analysis.CashFlow;
-import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -45,8 +38,19 @@ import org.jfree.data.time.Minute;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
-import ta4jexamples.loaders.CsvTradesLoader;
-import ta4jexamples.strategies.MovingMomentumStrategy;
+
+import com.stacksavings.loaders.CsvTicksLoader;
+import com.stacksavings.strategies.MovingMomentumStrategy;
+
+import eu.verdelhan.ta4j.Decimal;
+import eu.verdelhan.ta4j.Indicator;
+import eu.verdelhan.ta4j.Strategy;
+import eu.verdelhan.ta4j.Tick;
+import eu.verdelhan.ta4j.TimeSeries;
+import eu.verdelhan.ta4j.TradingRecord;
+import eu.verdelhan.ta4j.analysis.CashFlow;
+import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
+
 
 /**
  * This class builds a graphical chart showing the cash flow of a strategy.
@@ -106,7 +110,7 @@ public class CashFlowToChart {
     public static void main(String[] args) {
 
         // Getting the time series
-        TimeSeries series = CsvTradesLoader.loadBitstampSeries();
+        TimeSeries series = CsvTicksLoader.loadSeries();
         // Building the trading strategy
         Strategy strategy = MovingMomentumStrategy.buildStrategy(series);
         // Running the strategy
