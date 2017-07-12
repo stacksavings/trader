@@ -101,12 +101,13 @@ public class BuySell {
     
 	public static void main(String[] args) 
 	{
-		
+		//1. Load time series
 		TimeSeries series = CsvTicksLoader.loadSeries();
 		
+		//2. Strategy
 		Strategy strategy = BuySellStrategy.buildStrategy(series);
 		
-		//Graphics
+		//3. Graphics
 		
 		
 		   /**
