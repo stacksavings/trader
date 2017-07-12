@@ -68,7 +68,8 @@ public class CashFlowToChart {
         org.jfree.data.time.TimeSeries chartTimeSeries = new org.jfree.data.time.TimeSeries(name);
         for (int i = 0; i < tickSeries.getTickCount(); i++) {
             Tick tick = tickSeries.getTick(i);
-            chartTimeSeries.add(new Minute(new Date(tick.getEndTime().toEpochSecond() * 1000)), indicator.getValue(i).toDouble());
+            //chartTimeSeries.add(new Minute(new Date(tick.getEndTime().toEpochSecond() * 1000)), indicator.getValue(i).toDouble());
+            chartTimeSeries.addOrUpdate(new Minute(new Date(tick.getEndTime().toEpochSecond() * 1000)), indicator.getValue(i).toDouble());
         }
         return chartTimeSeries;
     }

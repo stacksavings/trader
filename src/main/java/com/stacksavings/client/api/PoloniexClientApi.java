@@ -21,7 +21,7 @@ import com.stacksavings.client.api.dto.ChartData;
 public class PoloniexClientApi {
 
 	public final static String ENDPOINT_API = "https://poloniex.com/public";
-	public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1435699200&end=1498867200&period=14400";
+	public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1435699200&end=1498867200&period=300";
 
 	public List<ChartData> consumeData() {
 		CloseableHttpClient client = HttpClients.createDefault();
