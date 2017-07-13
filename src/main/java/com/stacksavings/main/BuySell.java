@@ -104,10 +104,10 @@ public class BuySell {
 		//1. Load time series
 		TimeSeries series = CsvTicksLoader.loadSeries();
 		
-		//y. Load time series
+		//2. Load time series
 		Strategy strategy = BuySellStrategy.buildStrategy(series);
 		
-		//Graphics
+		//3. Graphics
 		
 		
 		   /**
