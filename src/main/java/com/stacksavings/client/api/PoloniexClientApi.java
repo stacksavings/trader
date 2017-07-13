@@ -1,7 +1,8 @@
 package com.stacksavings.client.api;
 
-import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,15 +14,13 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.opencsv.CSVWriter;
-import com.opencsv.bean.BeanToCsv;
-import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.stacksavings.client.api.dto.ChartData;
 
 public class PoloniexClientApi {
 
 	public final static String ENDPOINT_API = "https://poloniex.com/public";
-	public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1435699200&end=1498867200&period=300";
+	public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1499864400&end=1499875500&period=300";
+	//public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1435699200&end=1498867200&period=300";
 
 	public List<ChartData> consumeData() {
 		CloseableHttpClient client = HttpClients.createDefault();
@@ -44,31 +43,22 @@ public class PoloniexClientApi {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @param chartDataList
+	 */
 	public void writeCSV(List<ChartData> chartDataList) {
 
-		CSVWriter csvWriter;
 		try {
-			csvWriter = new CSVWriter(new FileWriter("src/main/resources/chartData.csv"));
-			
-			BeanToCsv<ChartData> bc = new BeanToCsv<ChartData>();
-
-			// mapping of columns with their positions
-			ColumnPositionMappingStrategy<ChartData> mappingStrategy = new ColumnPositionMappingStrategy<ChartData>();
-			// Set mappingStrategy type to Employee Type
-			mappingStrategy.setType(ChartData.class);
-			// Fields in Employee Bean
-			String[] columns = new String[] { "date", "high", "low", "open","close","volume","quoteVolume", "weightedAverage" };
-			
-			// Setting the colums for mappingStrategy
-			mappingStrategy.setColumnMapping(columns);
-			// Writing empList to csv file
-			bc.write(mappingStrategy, csvWriter, chartDataList);
-			
-			System.out.println("CSV File written successfully!!!");
-
-		} catch (IOException e) {
+			PrintWriter out = new PrintWriter("src/main/resources/chartData.csv");
+			for (ChartData chartData : chartDataList) {
+				out.println(chartData.toString());
+			}
+			out.close();
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+
 
 	}
 	

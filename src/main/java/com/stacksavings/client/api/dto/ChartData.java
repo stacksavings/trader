@@ -86,5 +86,20 @@ public class ChartData {
 	public void setWeightedAverage(double weightedAverage) {
 		this.weightedAverage = weightedAverage;
 	}
+	
+	@Override
+	public String toString(){
+		/*
+		private String date; // 1439006400,
+		private int high; // : 50,
+		private double low; // : 0.0045001,
+		private int open; // : 50,
+		private double close; // : 0.004555,
+		private double volume;// : 329.6493784,
+		private double quoteVolume; // : 54434.7809242,
+		private double weightedAverage; // : 0.00605585 */
+		
+		return getDate()+","+getHigh()+","+getLow()+","+getOpen()+","+getClose()+","+getVolume()+","+getQuoteVolume()+","+getWeightedAverage();
+	}
 
 }
