@@ -16,12 +16,28 @@ import org.apache.http.util.EntityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stacksavings.client.api.dto.ChartData;
 
+/**
+ * 
+ * @author jpcol <br>
+ * This class is a singleton
+ */
 public class PoloniexClientApi {
 
 	public final static String ENDPOINT_API = "https://poloniex.com/public";
 	public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1499864400&end=1499875500&period=300";
-	//public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1435699200&end=1498867200&period=300";
 
+	private static PoloniexClientApi instance = null;
+	   
+	public static PoloniexClientApi getInstance() 
+	{
+	      if(instance == null) 
+	      {
+	         instance = new PoloniexClientApi();
+	      }
+	      
+	      return instance;
+	}	
+	
 	public List<ChartData> consumeData() {
 		CloseableHttpClient client = HttpClients.createDefault();
 		HttpGet request = new HttpGet(ENDPOINT_API + RETURN_CHART_DATA);
