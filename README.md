@@ -14,7 +14,15 @@ filename.extension = csv
 
 # How get data from poloniex
 
+You just have to execute PoloniexClientApi.java class
 
+```java
+	public static void main(String[] args) {
+
+		PoloniexClientApi.getInstance().execute();
+		
+	}
+```
 
 # How run main class
 
