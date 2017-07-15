@@ -15,6 +15,7 @@ import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stacksavings.client.api.dto.ChartData;
+import com.stacksavings.utils.PropertiesUtil;
 
 /**
  * 
@@ -23,11 +24,12 @@ import com.stacksavings.client.api.dto.ChartData;
  */
 public class PoloniexClientApi {
 
-	public final static String ENDPOINT_API = "https://poloniex.com/public";
-	public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1499864400&end=1499875500&period=300";
+	//public final static String ENDPOINT_API = "https://poloniex.com/public";
+	//public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1499864400&end=1499875500&period=300";
 
 	private static PoloniexClientApi instance = null;
-	   
+	private PropertiesUtil propertiesUtil;
+	
 	public static PoloniexClientApi getInstance() 
 	{
 	      if(instance == null) 
@@ -38,9 +40,17 @@ public class PoloniexClientApi {
 	      return instance;
 	}	
 	
+	private PoloniexClientApi()
+	{
+		
+		propertiesUtil = PropertiesUtil.getInstance();
+		
+	}
+	
 	public List<ChartData> consumeData() {
 		CloseableHttpClient client = HttpClients.createDefault();
-		HttpGet request = new HttpGet(ENDPOINT_API + RETURN_CHART_DATA);
+		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
+		HttpGet request = new HttpGet(restApiService);
 		HttpResponse response;
 		try {
 			response = client.execute(request);
@@ -66,7 +76,12 @@ public class PoloniexClientApi {
 	public void writeCSV(List<ChartData> chartDataList) {
 
 		try {
-			PrintWriter out = new PrintWriter("src/main/resources/chartData.csv");
+			String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+			String fileName = propertiesUtil.getProps().getProperty("filename");
+			String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+			
+			PrintWriter out = new PrintWriter(directoryPath+fileName+"."+filenameExtension);
+			
 			for (ChartData chartData : chartDataList) {
 				out.println(chartData.toString());
 			}
@@ -86,7 +101,7 @@ public class PoloniexClientApi {
 
 	public static void main(String[] args) {
 
-		new PoloniexClientApi().execute();
+		PoloniexClientApi.getInstance().execute();
 		
 	}
 }
