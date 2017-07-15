@@ -83,7 +83,7 @@ public class PoloniexClientApi {
 			
 			String dateNow = sdf.format(new Date());
 			
-			PrintWriter out = new PrintWriter(directoryPath+fileName+dateNow+"."+filenameExtension);
+			PrintWriter out = new PrintWriter(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
 			
 			for (ChartData chartData : chartDataList) {
 				out.println(chartData.toString());
