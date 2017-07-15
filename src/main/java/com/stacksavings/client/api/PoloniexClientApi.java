@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -49,6 +50,20 @@ public class PoloniexClientApi {
 	public List<ChartData> consumeData() {
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
+		
+		Date dDateNow = new Date();
+		
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(dDateNow);
+		calendar.add(Calendar.MINUTE, -5);
+		Long lDateBegin = calendar.getTimeInMillis()/1000;
+		
+		restApiService = restApiService.replaceAll("startbegin", lDateBegin.toString() );
+		
+		Long lDateEnd = dDateNow.getTime()/1000;
+		
+		restApiService = restApiService.replaceAll("startend", lDateEnd.toString());
+		
 		HttpGet request = new HttpGet(restApiService);
 		HttpResponse response;
 		try {
@@ -79,7 +94,7 @@ public class PoloniexClientApi {
 			String fileName = propertiesUtil.getProps().getProperty("filename");
 			String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
 			
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyy_mm_dd");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyy_mm_dd_HH_mm_ss");
 			
 			String dateNow = sdf.format(new Date());
 			
