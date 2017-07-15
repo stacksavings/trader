@@ -24,6 +24,8 @@ You just have to execute PoloniexClientApi.java class
 	}
 ```
 
-# How run main class
+ after it will generate a file csv in 
 
-To run the main class, you just have execute BuySell.java class, it has a main method. You will see a graphic with lines, green lines is to buy.
+```property
+path.directory = C://data_feed//
+```
