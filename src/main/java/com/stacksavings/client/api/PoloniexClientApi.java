@@ -55,7 +55,7 @@ public class PoloniexClientApi {
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(dDateNow);
-		calendar.add(Calendar.MINUTE, -5);
+		calendar.add(Calendar.MINUTE, -30);
 		Long lDateBegin = calendar.getTimeInMillis()/1000;
 		
 		restApiService = restApiService.replaceAll("startbegin", lDateBegin.toString() );
