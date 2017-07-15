@@ -3,7 +3,9 @@ package com.stacksavings.client.api;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -23,9 +25,6 @@ import com.stacksavings.utils.PropertiesUtil;
  * This class is a singleton
  */
 public class PoloniexClientApi {
-
-	//public final static String ENDPOINT_API = "https://poloniex.com/public";
-	//public final static String RETURN_CHART_DATA = "?command=returnChartData&currencyPair=BTC_ETH&start=1499864400&end=1499875500&period=300";
 
 	private static PoloniexClientApi instance = null;
 	private PropertiesUtil propertiesUtil;
@@ -80,7 +79,11 @@ public class PoloniexClientApi {
 			String fileName = propertiesUtil.getProps().getProperty("filename");
 			String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
 			
-			PrintWriter out = new PrintWriter(directoryPath+fileName+"."+filenameExtension);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyy_mm_dd");
+			
+			String dateNow = sdf.format(new Date());
+			
+			PrintWriter out = new PrintWriter(directoryPath+fileName+dateNow+"."+filenameExtension);
 			
 			for (ChartData chartData : chartDataList) {
 				out.println(chartData.toString());
