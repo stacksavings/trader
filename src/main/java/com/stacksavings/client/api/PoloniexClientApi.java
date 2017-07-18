@@ -78,8 +78,7 @@ public class PoloniexClientApi {
 		String resultFinal = dateNowTime;
 		
 		if(f.exists() && !f.isDirectory()) { 
-		    // recuperar el último registro
-			 // InputStream stream = PoloniexClientApi.class.getClassLoader().getResourceAsStream(directoryPath+fileName+"_"+dateNow+"."+filenameExtension); 
+		    // recuperar el último registro 
 	        try {
 				
 	        	InputStream stream = new FileInputStream(f); 
