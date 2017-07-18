@@ -1,8 +1,13 @@
 package com.stacksavings.client.api;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -17,6 +22,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVReader;
 import com.stacksavings.client.api.dto.ChartData;
 import com.stacksavings.utils.PropertiesUtil;
 
@@ -47,6 +53,59 @@ public class PoloniexClientApi {
 		
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
+	public String getLastDate()
+	{
+		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		String fileName = propertiesUtil.getProps().getProperty("filename");
+		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
+		
+		SimpleDateFormat sdTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		
+		Date date= new Date();
+		
+		String dateNow = sdf.format(date);
+		
+		String dateNowTime = sdTime.format(date);
+		
+		File f = new File(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
+	
+		String resultFinal = dateNowTime;
+		
+		if(f.exists() && !f.isDirectory()) { 
+		    // recuperar el último registro
+			 // InputStream stream = PoloniexClientApi.class.getClassLoader().getResourceAsStream(directoryPath+fileName+"_"+dateNow+"."+filenameExtension); 
+	        try {
+				
+	        	InputStream stream = new FileInputStream(f); 
+			    CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
+	            String[] line;
+	            String[] lineAux = null;
+	            while ((line = csvReader.readNext()) != null) 
+	            {
+	                double volume = Double.parseDouble(line[5]);
+	                lineAux = line ;
+	            }
+	            resultFinal = lineAux[0];
+	        } catch (IOException ioe) {
+	        	ioe.printStackTrace();
+	        } catch (NumberFormatException nfe) {
+	        	nfe.printStackTrace();
+	        }			
+			
+		}
+		return resultFinal;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public List<ChartData> consumeData() {
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
@@ -94,7 +153,7 @@ public class PoloniexClientApi {
 			String fileName = propertiesUtil.getProps().getProperty("filename");
 			String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
 			
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyy_mm_dd_HH_mm_ss");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
 			
 			String dateNow = sdf.format(new Date());
 			
@@ -111,15 +170,22 @@ public class PoloniexClientApi {
 
 	}
 	
+	/**
+	 * 
+	 */
 	public void execute()
 	{
 		List<ChartData> chartDataList = this.consumeData();
 		writeCSV(chartDataList);
 	}
 
+	/**
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 
-		PoloniexClientApi.getInstance().execute();
-		
+		System.out.println(PoloniexClientApi.getInstance().getLastDate());
+		//PoloniexClientApi.getInstance().execute();
 	}
 }
