@@ -31,11 +31,11 @@ public class ChartData {
 		this.date = date;
 	}
 
-	public int getHigh() {
+	public double getHigh() {
 		return high;
 	}
 
-	public void setHigh(int high) {
+	public void setHigh(double high) {
 		this.high = high;
 	}
 
@@ -47,11 +47,11 @@ public class ChartData {
 		this.low = low;
 	}
 
-	public int getOpen() {
+	public double getOpen() {
 		return open;
 	}
 
-	public void setOpen(int open) {
+	public void setOpen(double open) {
 		this.open = open;
 	}
 
