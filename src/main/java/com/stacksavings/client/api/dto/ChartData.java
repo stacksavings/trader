@@ -11,9 +11,9 @@ import java.util.Date;
 public class ChartData {
 	
 	private String date; // 1439006400,
-	private int high; // : 50,
+	private double high; // : 50,
 	private double low; // : 0.0045001,
-	private int open; // : 50,
+	private double open; // : 50,
 	private double close; // : 0.004555,
 	private double volume;// : 329.6493784,
 	private double quoteVolume; // : 54434.7809242,

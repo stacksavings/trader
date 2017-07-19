@@ -39,8 +39,6 @@ public class PoloniexClientApi {
 	private static PoloniexClientApi instance = null;
 	private PropertiesUtil propertiesUtil;
 	
-	
-	
 	public static PoloniexClientApi getInstance() 
 	{
 	      if(instance == null) 
