@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -36,6 +37,9 @@ public class PoloniexClientApi {
 	private static PoloniexClientApi instance = null;
 	private PropertiesUtil propertiesUtil;
 	
+	private static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
+	private static final String YYYY_MM_DD = "yyyy_MM_dd";
+	
 	public static PoloniexClientApi getInstance() 
 	{
 	      if(instance == null) 
@@ -63,18 +67,22 @@ public class PoloniexClientApi {
 		String fileName = propertiesUtil.getProps().getProperty("filename");
 		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
+		SimpleDateFormat sdf = new SimpleDateFormat(YYYY_MM_DD);
 		
-		SimpleDateFormat sdTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat sdTime = new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
 		
 		Date date= new Date();
 		
 		String dateNow = sdf.format(date);
 		
-		String dateNowTime = sdTime.format(date);
-		
 		File f = new File(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
-	
+		
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.MINUTE, -30);
+		
+		String dateNowTime = sdTime.format(new Date(calendar.getTimeInMillis()));
+		
 		String resultFinal = dateNowTime;
 		
 		if(f.exists() && !f.isDirectory()) { 
@@ -105,26 +113,32 @@ public class PoloniexClientApi {
 	 * 
 	 * @return
 	 */
-	public List<ChartData> consumeData() {
+	public List<ChartData> consumeData() 
+	{
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
 		
-		Date dDateNow = new Date();
 		
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(dDateNow);
-		calendar.add(Calendar.MINUTE, -30);
-		Long lDateBegin = calendar.getTimeInMillis()/1000;
-		
-		restApiService = restApiService.replaceAll("startbegin", lDateBegin.toString() );
-		
-		Long lDateEnd = dDateNow.getTime()/1000;
-		
-		restApiService = restApiService.replaceAll("startend", lDateEnd.toString());
-		
-		HttpGet request = new HttpGet(restApiService);
-		HttpResponse response;
 		try {
+			
+			SimpleDateFormat sdf =new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
+			String sDate = getLastDate();
+			
+			Date dDate = sdf.parse(sDate);
+			
+			Date dDateNow = new Date();
+						
+			Long lDateBegin = dDate.getTime()/1000;
+			
+			restApiService = restApiService.replaceAll("startbegin", lDateBegin.toString() );
+			
+			Long lDateEnd = dDateNow.getTime()/1000;
+			
+			restApiService = restApiService.replaceAll("startend", lDateEnd.toString());
+			
+			HttpGet request = new HttpGet(restApiService);
+			HttpResponse response;
+			
 			response = client.execute(request);
 			HttpEntity entity1 = response.getEntity();
 			byte[] byteData = EntityUtils.toByteArray(entity1);
@@ -137,6 +151,8 @@ public class PoloniexClientApi {
 
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -147,26 +163,28 @@ public class PoloniexClientApi {
 	 */
 	public void writeCSV(List<ChartData> chartDataList) {
 
-		try {
-			String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-			String fileName = propertiesUtil.getProps().getProperty("filename");
-			String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
-			
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
-			
-			String dateNow = sdf.format(new Date());
-			
-			PrintWriter out = new PrintWriter(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
-			
-			for (ChartData chartData : chartDataList) {
-				out.println(chartData.toString());
+		if(chartDataList != null && chartDataList.size()>0)
+		{
+			try 
+			{
+				String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+				String fileName = propertiesUtil.getProps().getProperty("filename");
+				String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+				
+				SimpleDateFormat sdf = new SimpleDateFormat(YYYY_MM_DD);
+				
+				String dateNow = sdf.format(new Date());
+				
+				PrintWriter out = new PrintWriter(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
+				
+				for (ChartData chartData : chartDataList) {
+					out.println(chartData.toString());
+				}
+				out.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
 			}
-			out.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		}
-
-
 	}
 	
 	/**
@@ -184,7 +202,7 @@ public class PoloniexClientApi {
 	 */
 	public static void main(String[] args) {
 
-		System.out.println(PoloniexClientApi.getInstance().getLastDate());
-		//PoloniexClientApi.getInstance().execute();
+		//System.out.println(PoloniexClientApi.getInstance().getLastDate());
+		PoloniexClientApi.getInstance().execute();
 	}
 }
