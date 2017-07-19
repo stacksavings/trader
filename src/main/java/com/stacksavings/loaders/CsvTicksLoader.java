@@ -65,8 +65,6 @@ public class CsvTicksLoader {
 		
 		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
 		
-		SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
-		
 		Date dateNow= new Date();
 		
 		String sDateNow = sdf.format(dateNow);

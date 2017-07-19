@@ -135,17 +135,18 @@ public class BuySell {
         /**
          * Running the strategy and adding the buy and sell signals to plot
          */
-        // addBuySellSignals(series, strategy, plot);
+         addBuySellSignals(series, strategy, plot);
         
         /**
          * Displaying the chart
          */
-        // displayChart(chart);
+         displayChart(chart);
         
-        List<Trade> trades = series.run(strategy).getTrades();
+       /** 
+        * List<Trade> trades = series.run(strategy).getTrades();
         for (Trade trade : trades) {
         	 System.out.println( trade.getEntry().getType() );
         }
-		
+		*/
 	}
 }
