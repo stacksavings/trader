@@ -3,6 +3,7 @@ package com.stacksavings.client.api;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -93,17 +94,25 @@ public class PoloniexClientApi {
 			    CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
 	            String[] line;
 	            String[] lineAux = null;
-	            while ((line = csvReader.readNext()) != null) 
-	            {
-	                double volume = Double.parseDouble(line[5]);
-	                lineAux = line ;
-	            }
-	            resultFinal = lineAux[0];
+	            
+	            List<String[]> allLines = csvReader.readAll();
+	            
+	            lineAux = allLines.get(allLines.size()-1);
+	            
+	            Date lastDate = sdTime.parse(lineAux[0]);
+	            Calendar calendar2 = Calendar.getInstance();
+	    		calendar2.setTime(lastDate);
+	    		calendar2.add(Calendar.MINUTE, 5);
+	    		
+	            resultFinal = sdTime.format(calendar2.getTime());
+	            
 	        } catch (IOException ioe) {
 	        	ioe.printStackTrace();
 	        } catch (NumberFormatException nfe) {
 	        	nfe.printStackTrace();
-	        }			
+	        } catch (ParseException e) {
+				e.printStackTrace();
+			}			
 			
 		}
 		return resultFinal;
@@ -175,13 +184,15 @@ public class PoloniexClientApi {
 				
 				String dateNow = sdf.format(new Date());
 				
-				PrintWriter out = new PrintWriter(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
+				PrintWriter out = new PrintWriter(new FileWriter(directoryPath+fileName+"_"+dateNow+"."+filenameExtension, true));
 				
 				for (ChartData chartData : chartDataList) {
 					out.println(chartData.toString());
 				}
 				out.close();
 			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
