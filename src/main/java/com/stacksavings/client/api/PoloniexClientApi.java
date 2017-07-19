@@ -26,6 +26,7 @@ import org.apache.http.util.EntityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 import com.stacksavings.client.api.dto.ChartData;
+import com.stacksavings.utils.Constants;
 import com.stacksavings.utils.PropertiesUtil;
 
 /**
@@ -38,8 +39,7 @@ public class PoloniexClientApi {
 	private static PoloniexClientApi instance = null;
 	private PropertiesUtil propertiesUtil;
 	
-	private static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
-	private static final String YYYY_MM_DD = "yyyy_MM_dd";
+	
 	
 	public static PoloniexClientApi getInstance() 
 	{
@@ -68,9 +68,9 @@ public class PoloniexClientApi {
 		String fileName = propertiesUtil.getProps().getProperty("filename");
 		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
 		
-		SimpleDateFormat sdf = new SimpleDateFormat(YYYY_MM_DD);
+		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
 		
-		SimpleDateFormat sdTime = new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
+		SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
 		
 		Date date= new Date();
 		
@@ -130,7 +130,7 @@ public class PoloniexClientApi {
 		
 		try {
 			
-			SimpleDateFormat sdf =new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
+			SimpleDateFormat sdf =new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
 			String sDate = getLastDate();
 			
 			Date dDate = sdf.parse(sDate);
@@ -180,7 +180,7 @@ public class PoloniexClientApi {
 				String fileName = propertiesUtil.getProps().getProperty("filename");
 				String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
 				
-				SimpleDateFormat sdf = new SimpleDateFormat(YYYY_MM_DD);
+				SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
 				
 				String dateNow = sdf.format(new Date());
 				

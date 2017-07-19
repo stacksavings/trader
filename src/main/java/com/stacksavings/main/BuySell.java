@@ -102,7 +102,7 @@ public class BuySell {
 	public static void main(String[] args) 
 	{
 		//1. Load time series
-		TimeSeries series = CsvTicksLoader.loadSeries();
+		TimeSeries series = CsvTicksLoader.getInstance().loadSeries();
 		
 		//2. Load time series
 		Strategy strategy = BuySellStrategy.buildStrategy(series);

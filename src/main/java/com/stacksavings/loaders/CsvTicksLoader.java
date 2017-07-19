@@ -1,21 +1,29 @@
 package com.stacksavings.loaders;
 
-import eu.verdelhan.ta4j.TimeSeries;
-import eu.verdelhan.ta4j.Tick;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.opencsv.CSVReader;
-import java.time.ZonedDateTime;
-import java.time.ZoneId;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import com.stacksavings.client.api.PoloniexClientApi;
+import com.stacksavings.utils.Constants;
+import com.stacksavings.utils.PropertiesUtil;
+
+import eu.verdelhan.ta4j.Tick;
+import eu.verdelhan.ta4j.TimeSeries;
 
 /**
  * This class build a Ta4j time series from a CSV file containing ticks.
@@ -25,17 +33,54 @@ public class CsvTicksLoader {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private static CsvTicksLoader instance = null;
     /**
      * @return a time series from Apple Inc. ticks.
      */
-    public static TimeSeries loadSeries() {
+    
+	private PropertiesUtil propertiesUtil;
 
-        InputStream stream = CsvTicksLoader.class.getClassLoader().getResourceAsStream("chartData.csv"); 
-
-        List<Tick> ticks = new ArrayList<>();
-
-        CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
+	public static CsvTicksLoader getInstance() 
+	{
+	      if(instance == null) 
+	      {
+	         instance = new CsvTicksLoader();
+	      }
+	      
+	      return instance;
+	}	
+	
+	private CsvTicksLoader()
+	{
+		
+		propertiesUtil = PropertiesUtil.getInstance();
+		
+	}
+    
+    public TimeSeries loadSeries() {
+    	
+    	String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		String fileName = propertiesUtil.getProps().getProperty("filename");
+		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+		
+		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
+		
+		SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
+		
+		Date dateNow= new Date();
+		
+		String sDateNow = sdf.format(dateNow);
+		
+		File file = new File(directoryPath+fileName+"_"+sDateNow+"."+filenameExtension);
+		
+		List<Tick> ticks = new ArrayList<>();
+		
         try {
+        	
+        	InputStream stream = new FileInputStream(file); 
+
+            CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
+        	
             String[] line;
             while ((line = csvReader.readNext()) != null) {
                 ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
@@ -57,7 +102,7 @@ public class CsvTicksLoader {
     }
 
     public static void main(String[] args) {
-        TimeSeries series = CsvTicksLoader.loadSeries();
+        TimeSeries series = CsvTicksLoader.getInstance().loadSeries();
 
         System.out.println("Series: " + series.getName() + " (" + series.getSeriesPeriodDescription() + ")");
         System.out.println("Number of ticks: " + series.getTickCount());
