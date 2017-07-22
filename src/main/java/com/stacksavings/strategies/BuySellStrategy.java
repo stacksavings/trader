@@ -4,7 +4,6 @@ import eu.verdelhan.ta4j.Decimal;
 import eu.verdelhan.ta4j.Rule;
 import eu.verdelhan.ta4j.Strategy;
 import eu.verdelhan.ta4j.TimeSeries;
-import eu.verdelhan.ta4j.TradingRecord;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.indicators.trackers.SMAIndicator;
 import eu.verdelhan.ta4j.trading.rules.CrossedDownIndicatorRule;
@@ -42,10 +41,10 @@ public class BuySellStrategy {
         // Getting the simple moving average (SMA) of the close price over the last 5 ticks
         SMAIndicator shortSma = new SMAIndicator(closePrice, 5);
         // Here is the 5-ticks-SMA value at the 42nd index
-        System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(7).toDouble());
+        System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(42).toDouble());
 
         // Getting a longer SMA (e.g. over the 30 last ticks)
-        SMAIndicator longSma = new SMAIndicator(closePrice, 15);
+        SMAIndicator longSma = new SMAIndicator(closePrice, 30);
 
 
         // Ok, now let's building our trading rules!
@@ -55,7 +54,7 @@ public class BuySellStrategy {
         //  - if the 5-ticks SMA crosses over 30-ticks SMA
         //  - or if the price goes below a defined price (e.g $800.00)
         Rule buyingRule = new CrossedUpIndicatorRule(shortSma, longSma)
-                .or(new CrossedDownIndicatorRule(closePrice, Decimal.valueOf("800")));
+                .or(new CrossedDownIndicatorRule(closePrice, Decimal.valueOf("0.83")));
         
         // Selling rules
         // We want to sell:

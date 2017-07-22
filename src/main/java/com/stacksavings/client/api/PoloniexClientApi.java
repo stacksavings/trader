@@ -78,7 +78,7 @@ public class PoloniexClientApi {
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
-		calendar.add(Calendar.MINUTE, -30);
+		calendar.add(Calendar.MINUTE, -900);
 		
 		String dateNowTime = sdTime.format(new Date(calendar.getTimeInMillis()));
 		
