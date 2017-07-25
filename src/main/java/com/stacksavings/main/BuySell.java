@@ -14,6 +14,7 @@ import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.time.Minute;
+import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
@@ -48,7 +49,8 @@ public class BuySell {
         for (int i = 0; i < tickSeries.getTickCount(); i++) {
             Tick tick = tickSeries.getTick(i);
             //chartTimeSeries.add(new Minute(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
-            chartTimeSeries.addOrUpdate(new Minute(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
+            //chartTimeSeries.addOrUpdate(new Minute(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
+            chartTimeSeries.addOrUpdate(new Second(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
         }
         return chartTimeSeries;
     }
@@ -66,13 +68,15 @@ public class BuySell {
         // Adding markers to plot
         for (Trade trade : trades) {
             // Buy signal
-            double buySignalTickTime = new Minute(Date.from(series.getTick(trade.getEntry().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
+            //double buySignalTickTime = new Minute(Date.from(series.getTick(trade.getEntry().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
+            double buySignalTickTime = new Second(Date.from(series.getTick(trade.getEntry().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
             Marker buyMarker = new ValueMarker(buySignalTickTime);
             buyMarker.setPaint(Color.GREEN);
             buyMarker.setLabel("B");
             plot.addDomainMarker(buyMarker);
             // Sell signal
-            double sellSignalTickTime = new Minute(Date.from(series.getTick(trade.getExit().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
+            //double sellSignalTickTime = new Minute(Date.from(series.getTick(trade.getExit().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
+            double sellSignalTickTime = new Second(Date.from(series.getTick(trade.getExit().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
             Marker sellMarker = new ValueMarker(sellSignalTickTime);
             sellMarker.setPaint(Color.RED);
             sellMarker.setLabel("S");
@@ -107,19 +111,26 @@ public class BuySell {
 		//2. Load time series
 		Strategy strategy = BuySellStrategy.buildStrategy(series);
 		
+		
+		List<Trade> trades = series.run(strategy).getTrades();
+		for (Trade trade : trades) {
+			
+			System.out.println("Type: "+ trade.getExit().getType()+" Index:"+trade.getExit().getIndex()+" Price:"+trade.getExit().getPrice());
+			System.out.println("Type: "+ trade.getEntry().getType()+" Index:"+trade.getEntry().getIndex()+" Price:"+trade.getEntry().getPrice());
+		}
 		//3. Graphics
 		
 		
 		   /**
          * Building chart datasets
          */
-        TimeSeriesCollection dataset = new TimeSeriesCollection();
-        dataset.addSeries(buildChartTimeSeries(series, new ClosePriceIndicator(series), "Bitstamp Bitcoin (BTC)"));
+        //TimeSeriesCollection dataset = new TimeSeriesCollection();
+        //dataset.addSeries(buildChartTimeSeries(series, new ClosePriceIndicator(series), "Bitstamp Bitcoin (BTC)"));
 
         /**
          * Creating the chart
          */
-        JFreeChart chart = ChartFactory.createTimeSeriesChart(
+        /** JFreeChart chart = ChartFactory.createTimeSeriesChart(
                 "Bitstamp BTC", // title
                 "Date", // x-axis label
                 "Price", // y-axis label
@@ -131,16 +142,17 @@ public class BuySell {
         XYPlot plot = (XYPlot) chart.getPlot();
         DateAxis axis = (DateAxis) plot.getDomainAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
-
+		**/
+		
         /**
          * Running the strategy and adding the buy and sell signals to plot
          */
-         addBuySellSignals(series, strategy, plot);
+         //addBuySellSignals(series, strategy, plot);
         
         /**
          * Displaying the chart
          */
-         displayChart(chart);
+         //displayChart(chart);
         
        /** 
         * List<Trade> trades = series.run(strategy).getTrades();
