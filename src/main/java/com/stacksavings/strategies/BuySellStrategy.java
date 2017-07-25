@@ -58,8 +58,8 @@ public class BuySellStrategy {
         // We want to buy:
         //  - if the 5-ticks SMA crosses over 30-ticks SMA
         //  - or if the price goes below a defined price (e.g $0.83)
-        Rule buyingRule = new CrossedUpIndicatorRule(shortSma, longSma)
-                .or(new CrossedDownIndicatorRule(closePrice, Decimal.valueOf("0.819")));
+        Rule buyingRule = new CrossedUpIndicatorRule(shortSma, longSma);
+                //.or(new CrossedDownIndicatorRule(closePrice, Decimal.valueOf("0.819")));
         
         // Selling rules
         // We want to sell:
