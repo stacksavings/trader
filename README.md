@@ -16,6 +16,12 @@ filename.extension = csv
 
 You just have to execute PoloniexClientApi.java class
 
+In C9.io environment, just execute this command,
+
+```linux
+mvn exec:java -Dexec.mainClass="com.stacksavings.client.api.PoloniexClientApi"
+```
+
 ```java
 	public static void main(String[] args) {
 
