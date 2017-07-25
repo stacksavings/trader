@@ -115,7 +115,7 @@ public class BuySell {
 		List<Trade> trades = series.run(strategy).getTrades();
 		for (Trade trade : trades) {
 			
-			System.out.println("Type: "+ trade.getExit().getType()+" Index:"+trade.getExit().getIndex()+" Price:"+trade.getExit().getPrice());
+			//System.out.println("Type: "+ trade.getExit().getType()+" Index:"+trade.getExit().getIndex()+" Price:"+trade.getExit().getPrice());
 			System.out.println("Type: "+ trade.getEntry().getType()+" Index:"+trade.getEntry().getIndex()+" Price:"+trade.getEntry().getPrice());
 		}
 		//3. Graphics

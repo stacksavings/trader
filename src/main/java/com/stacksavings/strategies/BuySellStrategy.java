@@ -25,7 +25,7 @@ import eu.verdelhan.ta4j.trading.rules.UnderIndicatorRule;
 public class BuySellStrategy {
 
 	/**
-	 * 
+	 * SMA
 	 * @param series
 	 * @return
 	 */
