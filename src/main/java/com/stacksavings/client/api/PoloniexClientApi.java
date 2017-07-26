@@ -210,8 +210,6 @@ public class PoloniexClientApi {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-
-		//System.out.println(PoloniexClientApi.getInstance().getLastDate());
 		PoloniexClientApi.getInstance().execute();
 	}
 }
