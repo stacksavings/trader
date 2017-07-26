@@ -5,7 +5,7 @@ import org.junit.Test;
 
 /**
  * 
- * @author jpcol
+ * @author julio paulo
  *
  */
 public class PoloniexClientApiTest {
