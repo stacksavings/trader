@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.stacksavings.loaders.CsvTicksLoader;
+import com.stacksavings.utils.ROCIndicatorUtils;
 
 import eu.verdelhan.ta4j.Decimal;
 import eu.verdelhan.ta4j.TimeSeries;
@@ -46,26 +47,12 @@ public class ROCIndicatorTest {
         	results.add(roc.getValue(i)) ;
         }
         
-        calculateRisePrice(results);
+        List<Decimal> resultFinal =  ROCIndicatorUtils.calculateRisePrice(results);
+        for (Decimal decimal : resultFinal) {
+			System.out.println(" BUY Signal !!! "+decimal);
+		}
         
     }
     
-    private void calculateRisePrice(List<Decimal> result)
-    {
-    	int i = 0;
-    	while( i < result.size()){
-    		Decimal number = result.get(i);
-    		if(number.isPositive()){
-    			// Check if there are 3 times positives
-    			i++;
-    			if(i < result.size() && result.get(i).isPositive()){
-    				i++;
-    				if(i < result.size() && result.get(i).isPositive()){
-    					System.out.println(" BUY SIGNAL !!!, Price: "+result.get(i));
-    				}
-    			}
-    		}
-    		i++;
-    	}
-    }
+ 
 }
