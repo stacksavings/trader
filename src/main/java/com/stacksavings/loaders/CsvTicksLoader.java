@@ -98,17 +98,12 @@ public class CsvTicksLoader {
         return new TimeSeries("apple_ticks", ticks);
     }
     
+    /**
+     * 
+     * @param fileName
+     * @return
+     */
     public TimeSeries loadSeriesByFileName(String fileName) {
-    	
-    	String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-		//String fileName = propertiesUtil.getProps().getProperty("filename");
-		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
-		
-		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
-		
-		Date dateNow= new Date();
-		
-		String sDateNow = sdf.format(dateNow);
 		
 		File file = new File(fileName);
 		
