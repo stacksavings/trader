@@ -2,12 +2,9 @@ package com.stacksavings.client.api;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 import com.stacksavings.client.api.dto.ChartData;
 import com.stacksavings.utils.Constants;
+import com.stacksavings.utils.FileManager;
 import com.stacksavings.utils.PropertiesUtil;
 
 /**
@@ -41,6 +39,7 @@ public class PoloniexClientApi {
 
 	private static PoloniexClientApi instance = null;
 	private PropertiesUtil propertiesUtil;
+	private FileManager fileManager; 
 	
 	public static PoloniexClientApi getInstance() 
 	{
@@ -56,6 +55,7 @@ public class PoloniexClientApi {
 	{
 		
 		propertiesUtil = PropertiesUtil.getInstance();
+		fileManager = FileManager.getInstance();
 		
 	}
 	
@@ -203,52 +203,27 @@ public class PoloniexClientApi {
 		return null;
 	}
 
+	
 	/**
-	 * 
-	 * @param chartDataList
+	 * Call this method every time in cron schedule
 	 */
-	public void writeCSV(String currencyPair, List<ChartData> chartDataList) {
-
-		if(chartDataList != null && chartDataList.size()>0)
-		{
-			try 
-			{
-				String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-				String fileName = propertiesUtil.getProps().getProperty("filename");
-				String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
-				
-				SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
-				
-				String dateNow = sdf.format(new Date());
-				
-				PrintWriter out = new PrintWriter(new FileWriter(directoryPath+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension, true));
-				
-				for (ChartData chartData : chartDataList) {
-					out.println(chartData.toString());
-				}
-				out.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+	public void generateCSVFile()
+	{
+		List<String> currencyList = this.returnCurrencyPair();
+		for (String currencyPair : currencyList) {
+			this.returnChartData(currencyPair);
 		}
+		
 	}
 	
 	/**
 	 * 
+	 * @param currencyPair
 	 */
 	public void execute(String currencyPair)
 	{
 		List<ChartData> chartDataList = this.returnChartData(currencyPair);
-		writeCSV(currencyPair, chartDataList);
+		fileManager.writeCSV(currencyPair, chartDataList);
 	}
 
-	/**
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		//PoloniexClientApi.getInstance().execute();
-	}
 }
