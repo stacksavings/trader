@@ -18,7 +18,7 @@ public class PoloniexClientApiTest {
     @Test
     public void consumeDataFromApi() 
     {
-    	PoloniexClientApi.getInstance().execute();
+    	PoloniexClientApi.getInstance().execute("USDT_BTC");
     }
 
 }

@@ -120,7 +120,7 @@ public class PoloniexClientApi {
 	 * 
 	 * @return
 	 */
-	public List<ChartData> consumeData() 
+	public List<ChartData> consumeData(String currencyPair) 
 	{
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
@@ -142,6 +142,8 @@ public class PoloniexClientApi {
 			Long lDateEnd = dDateNow.getTime()/1000;
 			
 			restApiService = restApiService.replaceAll("startend", lDateEnd.toString());
+			
+			restApiService = restApiService.replaceAll("currency_pair", currencyPair);
 			
 			HttpGet request = new HttpGet(restApiService);
 			HttpResponse response;
@@ -168,7 +170,7 @@ public class PoloniexClientApi {
 	 * 
 	 * @param chartDataList
 	 */
-	public void writeCSV(List<ChartData> chartDataList) {
+	public void writeCSV(String currencyPair, List<ChartData> chartDataList) {
 
 		if(chartDataList != null && chartDataList.size()>0)
 		{
@@ -182,7 +184,7 @@ public class PoloniexClientApi {
 				
 				String dateNow = sdf.format(new Date());
 				
-				PrintWriter out = new PrintWriter(new FileWriter(directoryPath+fileName+"_"+dateNow+"."+filenameExtension, true));
+				PrintWriter out = new PrintWriter(new FileWriter(directoryPath+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension, true));
 				
 				for (ChartData chartData : chartDataList) {
 					out.println(chartData.toString());
@@ -199,10 +201,10 @@ public class PoloniexClientApi {
 	/**
 	 * 
 	 */
-	public void execute()
+	public void execute(String currencyPair)
 	{
-		List<ChartData> chartDataList = this.consumeData();
-		writeCSV(chartDataList);
+		List<ChartData> chartDataList = this.consumeData(currencyPair);
+		writeCSV(currencyPair, chartDataList);
 	}
 
 	/**
@@ -210,6 +212,6 @@ public class PoloniexClientApi {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		PoloniexClientApi.getInstance().execute();
+		//PoloniexClientApi.getInstance().execute();
 	}
 }
