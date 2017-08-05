@@ -11,10 +11,12 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -22,6 +24,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
@@ -118,9 +121,43 @@ public class PoloniexClientApi {
 	
 	/**
 	 * 
+	 * Return a currency pair list
 	 * @return
 	 */
-	public List<ChartData> consumeData(String currencyPair) 
+	public List<String> returnCurrencyPair()
+	{
+		
+		CloseableHttpClient client = HttpClients.createDefault();
+		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.ticker");
+		
+		List<String> currencyPair = new ArrayList<String>();
+		try {
+			
+			HttpGet request = new HttpGet(restApiService);
+			HttpResponse response;
+			
+			response = client.execute(request);
+			HttpEntity entity1 = response.getEntity();
+			JSONObject jsonObject =new JSONObject(EntityUtils.toString(entity1));
+			Set<String> iterator = jsonObject.keySet();
+			for (String item : iterator) {
+				currencyPair.add(item);
+			}
+			return currencyPair;
+
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		} 
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public List<ChartData> returnChartData(String currencyPair) 
 	{
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
@@ -203,7 +240,7 @@ public class PoloniexClientApi {
 	 */
 	public void execute(String currencyPair)
 	{
-		List<ChartData> chartDataList = this.consumeData(currencyPair);
+		List<ChartData> chartDataList = this.returnChartData(currencyPair);
 		writeCSV(currencyPair, chartDataList);
 	}
 
