@@ -211,7 +211,8 @@ public class PoloniexClientApi {
 	{
 		List<String> currencyList = this.returnCurrencyPair();
 		for (String currencyPair : currencyList) {
-			this.returnChartData(currencyPair);
+			List<ChartData> chartDataList = this.returnChartData(currencyPair);
+			fileManager.writeCSV(currencyPair, chartDataList);
 		}
 		
 	}
