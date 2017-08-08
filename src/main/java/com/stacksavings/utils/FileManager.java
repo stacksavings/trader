@@ -113,7 +113,7 @@ public class FileManager {
 		
 		String dateNow = sdf.format(date);
 		
-		File file = new File(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
+		File file = new File(directoryPath+"//"+dateNow+"//"+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension);
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -124,12 +124,12 @@ public class FileManager {
 		String resultFinal = dateNowTime;
 		
 		if(file.exists() && !file.isDirectory()) { 
-		    // recuperar el último registro 
+		    // recuperar el último registro
+			CSVReader csvReader = null;
 	        try {
 				
 	        	InputStream stream = new FileInputStream(file); 
-			    CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
-	            String[] line;
+			    csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
 	            String[] lineAux = null;
 	            
 	            List<String[]> allLines = csvReader.readAll();
@@ -143,12 +143,30 @@ public class FileManager {
 	    		
 	            resultFinal = sdTime.format(calendar2.getTime());
 	            
-	        } catch (IOException ioe) {
+	        } 
+	        catch (IOException ioe) 
+	        {
 	        	ioe.printStackTrace();
-	        } catch (NumberFormatException nfe) {
+	        } 
+	        catch (NumberFormatException nfe) 
+	        {
 	        	nfe.printStackTrace();
-	        } catch (ParseException e) {
+	        } 
+	        catch (ParseException e) 
+	        {
 				e.printStackTrace();
+			}
+	        finally{
+	        	if(csvReader!=null ){
+	        		try 
+	        		{
+						csvReader.close();
+					} 
+	        		catch (IOException e) 
+	        		{
+						e.printStackTrace();
+					}
+	        	}
 			}			
 			
 		}
