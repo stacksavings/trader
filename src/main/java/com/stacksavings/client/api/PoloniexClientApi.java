@@ -31,7 +31,7 @@ import com.stacksavings.utils.PropertiesUtil;
  */
 public class PoloniexClientApi {
 
-	private static PoloniexClientApi instance = null;
+	private static PoloniexClientApi instance;
 	private PropertiesUtil propertiesUtil;
 	private FileManager fileManager;
 	private LoggerManager loggerManager;
