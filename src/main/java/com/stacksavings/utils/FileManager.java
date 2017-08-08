@@ -45,7 +45,26 @@ public class FileManager {
 		
 	}
 	
-
+	/**
+	 * Build a File Object from properties 
+	 * 
+	 * @param currencyPair
+	 * @return
+	 */
+	private File getFileByName(String currencyPair)
+	{
+		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		String fileName = propertiesUtil.getProps().getProperty("filename");
+		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+		
+		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
+		
+		String dateNow = sdf.format(new Date());
+		
+		File file = new File(directoryPath+"//"+dateNow+"//"+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension);
+		
+		return file;
+	}
 	
 	/**
 	 * This method write a csv file
@@ -57,17 +76,20 @@ public class FileManager {
 		{
 			try 
 			{
+				/**
 				String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
 				String fileName = propertiesUtil.getProps().getProperty("filename");
 				String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
-				
+				*/
 				SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
 				
 				String dateNow = sdf.format(new Date());
 				
 				createDirectory(dateNow);
 				
-				PrintWriter out = new PrintWriter(new FileWriter(directoryPath+"//"+dateNow+"//"+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension, true));
+				File file = getFileByName(currencyPair);
+				
+				PrintWriter out = new PrintWriter(new FileWriter(file, true));
 				
 				for (ChartData chartData : chartDataList) {
 					out.println(chartData.toString());
@@ -101,19 +123,21 @@ public class FileManager {
 	 */
 	public String getLastDateFromCSVFile(String currencyPair)
 	{
-		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-		String fileName = propertiesUtil.getProps().getProperty("filename");
-		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+		File file = getFileByName(currencyPair);
 		
-		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
+		// String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		// String fileName = propertiesUtil.getProps().getProperty("filename");
+		// String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+		
+		//SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
 		
 		SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
 		
 		Date date= new Date();
 		
-		String dateNow = sdf.format(date);
+		//String dateNow = sdf.format(date);
 		
-		File file = new File(directoryPath+"//"+dateNow+"//"+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension);
+		//File file = new File(directoryPath+"//"+dateNow+"//"+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension);
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
