@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stacksavings.client.api.dto.ChartData;
 import com.stacksavings.utils.Constants;
 import com.stacksavings.utils.FileManager;
+import com.stacksavings.utils.LoggerManager;
 import com.stacksavings.utils.PropertiesUtil;
 
 /**
@@ -32,7 +33,8 @@ public class PoloniexClientApi {
 
 	private static PoloniexClientApi instance = null;
 	private PropertiesUtil propertiesUtil;
-	private FileManager fileManager; 
+	private FileManager fileManager;
+	private LoggerManager loggerManager;
 	
 	public static PoloniexClientApi getInstance() 
 	{
@@ -49,6 +51,7 @@ public class PoloniexClientApi {
 		
 		propertiesUtil = PropertiesUtil.getInstance();
 		fileManager = FileManager.getInstance();
+		loggerManager = LoggerManager.getInstance();
 		
 	}
 	
@@ -60,6 +63,7 @@ public class PoloniexClientApi {
 	 */
 	public List<String> returnCurrencyPair()
 	{
+		loggerManager.info("begin returnCurrencyPair");
 		
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.ticker");
@@ -77,12 +81,15 @@ public class PoloniexClientApi {
 			for (String item : iterator) {
 				currencyPair.add(item);
 			}
+			
+			loggerManager.info("end returnCurrencyPair");
+			
 			return currencyPair;
 
 		} 
 		catch (IOException e) 
 		{
-			e.printStackTrace();
+			loggerManager.error(e.getMessage());
 		} 
 		return null;
 	}
@@ -93,6 +100,8 @@ public class PoloniexClientApi {
 	 */
 	public List<ChartData> returnChartData(String currencyPair) 
 	{
+		loggerManager.info("begin returnCurrencyPair");
+		
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
 		
@@ -127,12 +136,14 @@ public class PoloniexClientApi {
 
 			List<ChartData> chartDataList = Arrays.asList(objectMapper.readValue(byteData, ChartData[].class));
 
+			loggerManager.info("end returnCurrencyPair");
+			
 			return chartDataList;
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			loggerManager.error(e.getMessage());
 		} catch (ParseException e) {
-			e.printStackTrace();
+			loggerManager.error(e.getMessage());
 		}
 		return null;
 	}

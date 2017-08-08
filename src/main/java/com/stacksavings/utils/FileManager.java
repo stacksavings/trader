@@ -76,11 +76,6 @@ public class FileManager {
 		{
 			try 
 			{
-				/**
-				String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-				String fileName = propertiesUtil.getProps().getProperty("filename");
-				String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
-				*/
 				SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
 				
 				String dateNow = sdf.format(new Date());
@@ -110,9 +105,9 @@ public class FileManager {
 	public void createDirectory(String directoryName)
 	{
 		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-		File file = new File(directoryPath+directoryName);
+		File file = new File(directoryPath+"//"+directoryName);
 		
-		if(file.isDirectory() && !file.exists()){
+		if(!file.exists()){
 			file.mkdir();
 		}
 	}
