@@ -63,7 +63,7 @@ public class PoloniexClientApi {
 	 * 
 	 * @return
 	 */
-	public String getLastDate()
+	private String getLastDate()
 	{
 		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
 		String fileName = propertiesUtil.getProps().getProperty("filename");
@@ -77,7 +77,7 @@ public class PoloniexClientApi {
 		
 		String dateNow = sdf.format(date);
 		
-		File f = new File(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
+		File file = new File(directoryPath+fileName+"_"+dateNow+"."+filenameExtension);
 		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -87,18 +87,18 @@ public class PoloniexClientApi {
 		
 		String resultFinal = dateNowTime;
 		
-		if(f.exists() && !f.isDirectory()) { 
+		if(file.exists() && !file.isDirectory()) { 
 		    // recuperar el último registro 
 	        try {
 				
-	        	InputStream stream = new FileInputStream(f); 
+	        	InputStream stream = new FileInputStream(file); 
 			    CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
 	            String[] line;
 	            String[] lineAux = null;
 	            
 	            List<String[]> allLines = csvReader.readAll();
 	            
-	            lineAux = allLines.get(allLines.size()-1);
+	            lineAux = allLines.get(allLines.size()-1); // Get last line
 	            
 	            Date lastDate = sdTime.parse(lineAux[0]);
 	            Calendar calendar2 = Calendar.getInstance();
@@ -121,7 +121,7 @@ public class PoloniexClientApi {
 	
 	/**
 	 * 
-	 * Return a currency pair list
+	 * Client API - To return a currency pair list
 	 * @return
 	 */
 	public List<String> returnCurrencyPair()
@@ -154,7 +154,7 @@ public class PoloniexClientApi {
 	}
 	
 	/**
-	 * 
+	 * Client API - To return a chart data list
 	 * @return
 	 */
 	public List<ChartData> returnChartData(String currencyPair) 
@@ -162,10 +162,10 @@ public class PoloniexClientApi {
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
 		
-		
 		try {
 			
 			SimpleDateFormat sdf =new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
+			
 			String sDate = getLastDate();
 			
 			Date dDate = sdf.parse(sDate);
