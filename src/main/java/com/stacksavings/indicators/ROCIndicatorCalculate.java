@@ -1,6 +1,10 @@
 package com.stacksavings.indicators;
 
+import java.util.List;
+
+import com.stacksavings.client.api.PoloniexClientApi;
 import com.stacksavings.loaders.CsvTicksLoader;
+import com.stacksavings.utils.FileManager;
 
 import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
@@ -15,6 +19,8 @@ public class ROCIndicatorCalculate {
 
 	private static ROCIndicatorCalculate instance;
 	private CsvTicksLoader csvTicksLoader;
+	private PoloniexClientApi poloniexClientApi;
+	private FileManager fileManager;
 	
 	public static ROCIndicatorCalculate getInstance() 
 	{
@@ -29,14 +35,22 @@ public class ROCIndicatorCalculate {
 	private ROCIndicatorCalculate()
 	{
 		csvTicksLoader = CsvTicksLoader.getInstance();
+		poloniexClientApi = PoloniexClientApi.getInstance();
+		fileManager = FileManager.getInstance();
 	}
 	
 	
 	public void calculateROC()
 	{
-		TimeSeries series = csvTicksLoader.loadSeriesByFileName("fileName");
-		ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-		
-		ROCIndicator roc = new ROCIndicator(closePrice, 12);
+		List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
+		for (String currency : currencyPairList) 
+		{
+			String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
+			TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
+			ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+			
+			ROCIndicator roc = new ROCIndicator(closePrice, 12);
+
+		}
 	}
 }

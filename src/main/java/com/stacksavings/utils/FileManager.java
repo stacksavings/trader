@@ -46,6 +46,25 @@ public class FileManager {
 	}
 	
 	/**
+	 * 
+	 * @param currencyPair
+	 * @return
+	 */
+	public String getFileNameByCurrency(String currencyPair)
+	{
+		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		String fileName = propertiesUtil.getProps().getProperty("filename");
+		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+		
+		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
+		
+		String dateNow = sdf.format(new Date());
+		
+		return directoryPath+"//"+dateNow+"//"+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension;
+
+	}
+	
+	/**
 	 * Build a File Object from properties 
 	 * 
 	 * @param currencyPair
