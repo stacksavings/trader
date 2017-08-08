@@ -124,21 +124,11 @@ public class FileManager {
 	public String getLastDateFromCSVFile(String currencyPair)
 	{
 		File file = getFileByName(currencyPair);
-		
-		// String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-		// String fileName = propertiesUtil.getProps().getProperty("filename");
-		// String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
-		
-		//SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
-		
+				
 		SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
 		
 		Date date= new Date();
-		
-		//String dateNow = sdf.format(date);
-		
-		//File file = new File(directoryPath+"//"+dateNow+"//"+currencyPair+"_"+fileName+"_"+dateNow+"."+filenameExtension);
-		
+				
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
 		calendar.add(Calendar.MINUTE, -1200);
