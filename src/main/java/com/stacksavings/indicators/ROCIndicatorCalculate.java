@@ -26,6 +26,10 @@ public class ROCIndicatorCalculate {
 	private PoloniexClientApi poloniexClientApi;
 	private FileManager fileManager;
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public static ROCIndicatorCalculate getInstance() 
 	{
 	      if(instance == null) 
@@ -36,6 +40,9 @@ public class ROCIndicatorCalculate {
 	      return instance;
 	}	
 	
+	/**
+	 * 
+	 */
 	private ROCIndicatorCalculate()
 	{
 		csvTicksLoader = CsvTicksLoader.getInstance();
@@ -44,6 +51,9 @@ public class ROCIndicatorCalculate {
 	}
 	
 	
+	/**
+	 * calculateROC
+	 */
 	public void calculateROC()
 	{
 		List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
@@ -60,13 +70,15 @@ public class ROCIndicatorCalculate {
 	        
 	        List<Decimal> results =new ArrayList<Decimal>();
 	        
-	        for (int i = 0; i < nbTicks; i++) {
+	        for (int i = 0; i < nbTicks; i++) 
+	        {
 	        	results.add(roc.getValue(i)) ;
 	        }
 	        
 	        List<Decimal> resultFinal =  ROCIndicatorUtils.calculateRisePrice(results);
 	        System.out.println(" BUY Signal for currency : "+currency);
-	        for (Decimal decimal : resultFinal) {
+	        for (Decimal decimal : resultFinal) 
+	        {
 				System.out.println(" BUY Signal : "+decimal);
 			}
 	        
