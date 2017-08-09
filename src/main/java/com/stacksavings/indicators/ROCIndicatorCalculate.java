@@ -76,10 +76,10 @@ public class ROCIndicatorCalculate {
 	        }
 	        
 	        List<Decimal> resultFinal =  ROCIndicatorUtils.calculateRisePrice(results);
-	        System.out.println(" BUY Signal for currency : "+currency);
+	        System.out.println("****  BUY Signal for currency : "+currency);
 	        for (Decimal decimal : resultFinal) 
 	        {
-				System.out.println(" BUY Signal : "+decimal);
+				System.out.println(decimal);
 			}
 	        
 		}
