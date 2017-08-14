@@ -5,6 +5,10 @@
 	<artifactId>cryptocurrency-analysis</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
+	<properties>
+		<env>local</env>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>eu.verdelhan</groupId>
@@ -60,7 +64,21 @@
 					<include>**/*.properties</include>
 				</includes>
 			</resource>
+			
+			<resource>
+				<filtering>false</filtering>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>**/application.properties</exclude>
+				</excludes>
+			</resource>	
+					
 		</resources>
+		
+		<filters>
+			<filter>src/main/filters/${env}.properties</filter>
+		</filters>
+			
 
 		<plugins>
 			<plugin>
