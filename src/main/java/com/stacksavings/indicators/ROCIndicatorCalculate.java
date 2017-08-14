@@ -84,4 +84,10 @@ public class ROCIndicatorCalculate {
 	        
 		}
 	}
+	
+	public static void main(String[] args) {
+
+		ROCIndicatorCalculate.getInstance().calculateROC();
+		
+	}
 }
