@@ -166,10 +166,19 @@ public class PoloniexClientApi {
 	 * 
 	 * @param currencyPair
 	 */
-	public void execute(String currencyPair)
+	public void execute()
 	{
-		List<ChartData> chartDataList = this.returnChartData(currencyPair);
-		fileManager.writeCSV(currencyPair, chartDataList);
+		List<String> currencyList = this.returnCurrencyPair();
+		for (String currencyPair : currencyList) {
+			List<ChartData> chartDataList = this.returnChartData(currencyPair);
+			fileManager.writeCSV(currencyPair, chartDataList);
+		}
+	}
+	
+	public static void main(String[] args) {
+
+		PoloniexClientApi.getInstance().execute();
+		
 	}
 
 }
