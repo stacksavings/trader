@@ -109,11 +109,12 @@ public class CsvTicksLoader {
 		
 		List<Tick> ticks = new ArrayList<>();
 		
+		CSVReader csvReader = null;
         try {
         	
         	InputStream stream = new FileInputStream(file); 
 
-            CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
+            csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
         	
             String[] line;
             while ((line = csvReader.readNext()) != null) {
@@ -126,11 +127,27 @@ public class CsvTicksLoader {
 
                 ticks.add(new Tick(date, open, high, low, close, volume));
             }
-        } catch (IOException ioe) {
-            Logger.getLogger(CsvTicksLoader.class.getName()).log(Level.SEVERE, "Unable to load ticks from CSV", ioe);
-        } catch (NumberFormatException nfe) {
-            Logger.getLogger(CsvTicksLoader.class.getName()).log(Level.SEVERE, "Error while parsing value", nfe);
+        } 
+        catch (IOException ioe) 
+        {
+        	ioe.printStackTrace();
+        } 
+        catch (NumberFormatException nfe) 
+        {
+        	nfe.printStackTrace();
         }
+        finally{
+        	if(csvReader!=null ){
+        		try 
+        		{
+					csvReader.close();
+				} 
+        		catch (IOException e) 
+        		{
+					e.printStackTrace();
+				}
+        	}
+		}	
 
         return new TimeSeries("apple_ticks", ticks);
     }
