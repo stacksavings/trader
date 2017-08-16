@@ -100,7 +100,7 @@ public class PoloniexClientApi {
 	 */
 	public List<ChartData> returnChartData(String currencyPair) 
 	{
-		loggerManager.info("begin returnCurrencyPair");
+		loggerManager.info("begin returnCurrencyPair:"+currencyPair);
 		
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
