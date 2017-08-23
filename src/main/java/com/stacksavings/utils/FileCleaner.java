@@ -11,6 +11,8 @@ public class FileCleaner {
 	
 	private FileManager fileManager;
 	
+	private LoggerManager loggerManager;
+	
 	public static FileCleaner getInstance() 
 	{
 	      if(instance == null) 
@@ -24,11 +26,17 @@ public class FileCleaner {
 	private FileCleaner	()
 	{
 		fileManager = FileManager.getInstance();
+		
+		loggerManager = LoggerManager.getInstance();
 	}
 	
 	public void clearDirectory()
 	{
+		loggerManager.info("begin clearDirectory");
+		
 		fileManager.clearDirectory();
+		
+		loggerManager.info("end clearDirectory");
 	}
 	
 	public static void main(String[] args) 

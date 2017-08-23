@@ -26,7 +26,10 @@ import com.stacksavings.client.api.dto.ChartData;
 public class FileManager {
 
 	private static FileManager instance ;
+	
 	private PropertiesUtil propertiesUtil;
+	
+	private LoggerManager loggerManager;
 	
 	public static FileManager getInstance() 
 	{
@@ -40,8 +43,9 @@ public class FileManager {
 	
 	private FileManager	()
 	{
-		
 		propertiesUtil = PropertiesUtil.getInstance();
+		
+		loggerManager = LoggerManager.getInstance();
 		
 	}
 	
@@ -184,6 +188,8 @@ public class FileManager {
 			String name = file.getName();
 			if(!name.equals(dateNow))
 			{
+				loggerManager.info("directory will be removed: "+ dateNow);
+				
 				removeDirectory(name);
 			}
 		}
