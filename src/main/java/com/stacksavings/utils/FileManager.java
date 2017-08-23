@@ -227,14 +227,17 @@ public class FileManager {
 	            
 	            List<String[]> allLines = csvReader.readAll();
 	            
-	            lineAux = allLines.get(allLines.size()-1); // Get last line
-	            
-	            Date lastDate = sdTime.parse(lineAux[0]);
-	            Calendar calendar2 = Calendar.getInstance();
-	    		calendar2.setTime(lastDate);
-	    		calendar2.add(Calendar.MINUTE, 5);
-	    		
-	            resultFinal = sdTime.format(calendar2.getTime());
+	            if((allLines.size()-1) < allLines.size()){
+		            lineAux = allLines.get(allLines.size()-1); // Get last line
+		            
+		            Date lastDate = sdTime.parse(lineAux[0]);
+		            Calendar calendar2 = Calendar.getInstance();
+		    		calendar2.setTime(lastDate);
+		    		calendar2.add(Calendar.MINUTE, 5);
+		    		
+		            resultFinal = sdTime.format(calendar2.getTime());
+
+	            }
 	            
 	        } 
 	        catch (IOException ioe) 
