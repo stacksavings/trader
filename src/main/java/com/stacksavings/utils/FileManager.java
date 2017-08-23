@@ -211,7 +211,7 @@ public class FileManager {
 		String resultFinal = dateNowTime;
 		
 		if(file.exists() && !file.isDirectory()) { 
-		    // recuperar el último registro
+		    // recuperar el ultimo registro
 			CSVReader csvReader = null;
 	        try {
 				
