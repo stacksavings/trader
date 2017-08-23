@@ -11,7 +11,7 @@ import java.util.Properties;
  */
 public class PropertiesUtil {
 
-	private static PropertiesUtil instance = null;
+	private static PropertiesUtil instance;
 	private Properties props;
 	
 	public static PropertiesUtil getInstance() {

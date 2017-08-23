@@ -25,7 +25,7 @@ import com.stacksavings.client.api.dto.ChartData;
  */
 public class FileManager {
 
-	private static FileManager instance = null;
+	private static FileManager instance ;
 	private PropertiesUtil propertiesUtil;
 	
 	public static FileManager getInstance() 
@@ -129,6 +129,47 @@ public class FileManager {
 		if(!file.exists()){
 			file.mkdir();
 		}
+	}
+	
+	/**
+	 * This method remove a directory 
+	 * @param directoryName
+	 */
+	public void removeDirectory(String directoryName)
+	{
+		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		File file = new File(directoryPath+"//"+directoryName);
+		
+		if(file.isDirectory())
+		{
+			for (File c : file.listFiles())
+			{
+				c.delete();
+			}
+			file.delete();
+		}
+	}
+	
+	/**
+	 * Remove directory not equal today
+	 */
+	public void clearDirectory()
+	{
+		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
+		String dateNow = sdf.format(new Date());
+
+		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		File fileDirectory = new File(directoryPath);
+		
+		for(File file :fileDirectory.listFiles())
+		{
+			String name = file.getName();
+			if(!name.equals(dateNow))
+			{
+				removeDirectory(name);
+			}
+		}
+		
 	}
 	
 	/**

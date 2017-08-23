@@ -8,7 +8,7 @@ package com.stacksavings.utils;
  */
 public class LoggerManager {
 
-	private static LoggerManager instance = null;
+	private static LoggerManager instance;
 	
 	public static LoggerManager getInstance() 
 	{
