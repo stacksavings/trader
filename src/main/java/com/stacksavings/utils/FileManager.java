@@ -227,7 +227,7 @@ public class FileManager {
 	            
 	            List<String[]> allLines = csvReader.readAll();
 	            
-	            if((allLines.size()-1) < allLines.size()){
+	            if((allLines.size() >0 && (allLines.size()-1) < allLines.size())){
 		            lineAux = allLines.get(allLines.size()-1); // Get last line
 		            
 		            Date lastDate = sdTime.parse(lineAux[0]);
