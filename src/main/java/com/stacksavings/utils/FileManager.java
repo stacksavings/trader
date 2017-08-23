@@ -93,6 +93,7 @@ public class FileManager {
 
 		if(chartDataList != null && chartDataList.size()>0)
 		{
+			PrintWriter out = null;
 			try 
 			{
 				SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
@@ -103,16 +104,33 @@ public class FileManager {
 				
 				File file = getFileByName(currencyPair);
 				
-				PrintWriter out = new PrintWriter(new FileWriter(file, true));
+				out = new PrintWriter(new FileWriter(file, true));
 				
-				for (ChartData chartData : chartDataList) {
-					out.println(chartData.toString());
+				for (ChartData chartData : chartDataList) 
+				{
+					if(chartData.getClose() != 0d && chartData.getHigh() != 0d && 
+					   chartData.getLow() != 0d && chartData.getOpen() != 0d && 
+					   chartData.getQuoteVolume() != 0 && chartData.getVolume() != 0d)
+					{
+						out.println(chartData.toString());
+					}
+					
 				}
-				out.close();
-			} catch (FileNotFoundException e) {
+			} 
+			catch (FileNotFoundException e) 
+			{
 				e.printStackTrace();
-			} catch (IOException e) {
+			} 
+			catch (IOException e) 
+			{
 				e.printStackTrace();
+			}
+			finally
+			{
+				if(out != null)
+				{
+					out.close();
+				}
 			}
 		}
 	}
