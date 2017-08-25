@@ -12,7 +12,7 @@ import com.sendgrid.SendGrid;
 
 public class EmailTest {
 	  public static void main(String[] args) throws IOException {
-	    Email from = new Email("test@example.com");
+	    Email from = new Email("juliopaulo@gmail.com");
 	    String subject = "Sending with SendGrid is Fun";
 	    Email to = new Email("juliopaulo@gmail.com");
 	    Content content = new Content("text/plain", "and easy to do anywhere, even with Java");
