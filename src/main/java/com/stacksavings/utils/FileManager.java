@@ -11,6 +11,8 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -210,11 +212,12 @@ public class FileManager {
 				
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
-		calendar.add(Calendar.MINUTE, -1200);
+		calendar.add(Calendar.MINUTE, -2400);
 		
 		String dateNowTime = sdTime.format(new Date(calendar.getTimeInMillis()));
 		
-		String resultFinal = dateNowTime;
+		String resultFinal = ZonedDateTime.now().withZoneSameLocal(ZoneId.systemDefault()).minusMinutes(2400).toString();
+		//String resultFinal = dateNowTime;
 		
 		if(file.exists() && !file.isDirectory()) { 
 		    // recuperar el ultimo registro
@@ -235,8 +238,11 @@ public class FileManager {
 		    		calendar2.setTime(lastDate);
 		    		calendar2.add(Calendar.MINUTE, 5);
 		    		
-		            resultFinal = sdTime.format(calendar2.getTime());
-
+		    		ZonedDateTime zonedDateTime = ZonedDateTime.parse(lineAux[0]);
+		    		zonedDateTime = zonedDateTime.plusMinutes(5L);
+		    		
+		    		resultFinal = zonedDateTime.toString();
+		    		
 	            }
 	            
 	        } 

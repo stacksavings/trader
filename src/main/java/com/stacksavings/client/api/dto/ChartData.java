@@ -1,6 +1,9 @@
 package com.stacksavings.client.api.dto;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 /**
@@ -23,7 +26,13 @@ public class ChartData {
 		
 		Date dDate=new Date(Long.parseLong(date)*1000);
 		SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		return dt.format(dDate);
+		Instant instant = dDate.toInstant();
+		ZonedDateTime LAZone= instant.atZone(ZoneId.systemDefault());
+		//System.out.println("In Los Angeles(America) Time Zone:"+ LAZone);
+		//ZoneId.systemDefault()
+		// dt.setTimeZone(ZoneId.systemDefault());
+		//return dt.format(dDate);
+		return LAZone.toString();
 		
 	}
 
@@ -88,17 +97,8 @@ public class ChartData {
 	}
 	
 	@Override
-	public String toString(){
-		/*
-		private String date; // 1439006400,
-		private int high; // : 50,
-		private double low; // : 0.0045001,
-		private int open; // : 50,
-		private double close; // : 0.004555,
-		private double volume;// : 329.6493784,
-		private double quoteVolume; // : 54434.7809242,
-		private double weightedAverage; // : 0.00605585 */
-		
+	public String toString()
+	{
 		return getDate()+","+getHigh()+","+getLow()+","+getOpen()+","+getClose()+","+getVolume()+","+getQuoteVolume()+","+getWeightedAverage();
 	}
 

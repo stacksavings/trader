@@ -117,8 +117,10 @@ public class CsvTicksLoader {
             csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
         	
             String[] line;
-            while ((line = csvReader.readNext()) != null) {
+            while ((line = csvReader.readNext()) != null) 
+            {
                 ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
+                //ZonedDateTime date = ZonedDateTime.parse(line[0], DATE_FORMAT).withZoneSameInstant(ZoneId.systemDefault());
                 double open = Double.parseDouble(line[1]);
                 double high = Double.parseDouble(line[2]);
                 double low = Double.parseDouble(line[3]);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.stacksavings.client.api.PoloniexClientApi;
+import com.stacksavings.client.api.dto.ROCIndicatorDto;
 import com.stacksavings.loaders.CsvTicksLoader;
 import com.stacksavings.utils.Constants;
 import com.stacksavings.utils.FileManager;
@@ -69,17 +70,20 @@ public class ROCIndicatorCalculate {
 			final int nbTicks = series.getTickCount();
 	        
 	        List<Decimal> results =new ArrayList<Decimal>();
+	        List<ROCIndicatorDto> resultROC = new ArrayList<ROCIndicatorDto>();
 	        
 	        for (int i = 0; i < nbTicks; i++) 
-	        {
-	        	results.add(roc.getValue(i)) ;
+	        {	
+	        	results.add(roc.getValue(i));
+	        	
+	        	resultROC.add(new ROCIndicatorDto(series.getTick(i), roc.getValue(i)));
 	        }
 	        
-	        List<Decimal> resultFinal =  ROCIndicatorUtils.calculateRisePrice(results);
+	        List<ROCIndicatorDto> resultFinal =  ROCIndicatorUtils.calculateRisePriceDto(resultROC);
 	        System.out.println("****  BUY Signal for currency : "+currency);
-	        for (Decimal decimal : resultFinal) 
+	        for (ROCIndicatorDto rocIndicatorDto : resultFinal) 
 	        {
-				System.out.println(decimal);
+				System.out.println("BeginTime"+rocIndicatorDto.getTick().getBeginTime()+ " Decimal: "+rocIndicatorDto.getDecimal());
 			}
 	        
 		}

@@ -2,6 +2,9 @@ package com.stacksavings.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.stacksavings.client.api.dto.ROCIndicatorDto;
+
 import eu.verdelhan.ta4j.Decimal;
 
 /**
@@ -37,4 +40,26 @@ public class ROCIndicatorUtils {
     	}
     	return resultFinal;
     }	   
+   
+   public static List<ROCIndicatorDto> calculateRisePriceDto(List<ROCIndicatorDto> result)
+   {
+	    List<ROCIndicatorDto> resultFinal = new ArrayList<ROCIndicatorDto>();
+	   
+	   	int i = 0;
+	   	while( i < result.size()){
+	   		ROCIndicatorDto number = result.get(i);
+	   		if(number.getDecimal().isPositive()){
+	   			// Check if there are 3 times positives
+	   			i++;
+	   			if(i < result.size() && result.get(i).getDecimal().isPositive()){
+	   				i++;
+	   				if(i < result.size() && result.get(i).getDecimal().isPositive()){
+	   					resultFinal.add(result.get(i));
+	   				}
+	   			}
+	   		}
+	   		i++;
+	   	}
+	   	return resultFinal;
+   }
 }

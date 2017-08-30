@@ -10,7 +10,26 @@ import com.stacksavings.utils.FileCleaner;
  */
 public class BatchMain {
 
+	private static BatchMain instance;
 	
+	public static BatchMain getInstance() 
+	{
+	      if(instance == null) 
+	      {
+	         instance = new BatchMain();
+	      }
+	      
+	      return instance;
+	}	
+	
+	public void execute()
+	{
+		FileCleaner.getInstance().clearDirectory();
+		
+		PoloniexClientApi.getInstance().execute();
+		
+		ROCIndicatorCalculate.getInstance().calculateROC();
+	}
 	/**
 	 * 
 	 * @param args
