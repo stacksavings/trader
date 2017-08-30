@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -206,7 +205,7 @@ public class FileManager {
 	{
 		File file = getFileByName(currencyPair);
 				
-		SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
+		//SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
 		
 		Date date= new Date();
 				
@@ -214,7 +213,7 @@ public class FileManager {
 		calendar.setTime(date);
 		calendar.add(Calendar.MINUTE, -2400);
 		
-		String dateNowTime = sdTime.format(new Date(calendar.getTimeInMillis()));
+		//String dateNowTime = sdTime.format(new Date(calendar.getTimeInMillis()));
 		
 		String resultFinal = ZonedDateTime.now().withZoneSameLocal(ZoneId.systemDefault()).minusMinutes(2400).toString();
 		//String resultFinal = dateNowTime;
