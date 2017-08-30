@@ -233,10 +233,10 @@ public class FileManager {
 	            if((allLines.size() >0 && (allLines.size()-1) < allLines.size())){
 		            lineAux = allLines.get(allLines.size()-1); // Get last line
 		            
-		            Date lastDate = sdTime.parse(lineAux[0]);
-		            Calendar calendar2 = Calendar.getInstance();
-		    		calendar2.setTime(lastDate);
-		    		calendar2.add(Calendar.MINUTE, 5);
+		            //Date lastDate = sdTime.parse(lineAux[0]);
+		            //Calendar calendar2 = Calendar.getInstance();
+		    		//calendar2.setTime(lastDate);
+		    		//calendar2.add(Calendar.MINUTE, 5);
 		    		
 		    		ZonedDateTime zonedDateTime = ZonedDateTime.parse(lineAux[0]);
 		    		zonedDateTime = zonedDateTime.plusMinutes(5L);
@@ -254,10 +254,11 @@ public class FileManager {
 	        {
 	        	nfe.printStackTrace();
 	        } 
-	        catch (ParseException e) 
+	        /**catch (ParseException e) 
 	        {
 				e.printStackTrace();
 			}
+			**/
 	        finally{
 	        	if(csvReader!=null ){
 	        		try 
