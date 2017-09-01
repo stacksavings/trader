@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -67,7 +68,10 @@ public class PoloniexClientApi {
 	{
 		loggerManager.info("begin returnCurrencyPair");
 		
-		CloseableHttpClient client = HttpClients.createDefault();
+		int timeout = 5; // seconds
+		final RequestConfig param = RequestConfig.custom().setConnectTimeout(timeout * 1000).build();
+		CloseableHttpClient client = HttpClients.custom().setDefaultRequestConfig(param).build();
+		
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.ticker");
 		
 		List<String> currencyPair = new ArrayList<String>();
