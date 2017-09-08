@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -205,7 +206,7 @@ public class FileManager {
 	{
 		File file = getFileByName(currencyPair);
 				
-		//SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
+		SimpleDateFormat sdTime = new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
 		
 		Date date= new Date();
 				
@@ -232,15 +233,15 @@ public class FileManager {
 	            if((allLines.size() >0 && (allLines.size()-1) < allLines.size())){
 		            lineAux = allLines.get(allLines.size()-1); // Get last line
 		            
-		            //Date lastDate = sdTime.parse(lineAux[0]);
-		            //Calendar calendar2 = Calendar.getInstance();
-		    		//calendar2.setTime(lastDate);
-		    		//calendar2.add(Calendar.MINUTE, 5);
+		            Date lastDate = sdTime.parse(lineAux[0]);
+		            Calendar calendar2 = Calendar.getInstance();
+		    		calendar2.setTime(lastDate);
+		    		calendar2.add(Calendar.MINUTE, 5);
 		    		
-		    		ZonedDateTime zonedDateTime = ZonedDateTime.parse(lineAux[0]);
-		    		zonedDateTime = zonedDateTime.plusMinutes(5L);
+		    		//ZonedDateTime zonedDateTime = ZonedDateTime.parse(lineAux[0]);
+		    		//zonedDateTime = zonedDateTime.plusMinutes(5L);
 		    		
-		    		resultFinal = zonedDateTime.toString();
+		    		resultFinal = sdTime.format(calendar2.getTime());
 		    		
 	            }
 	            
@@ -253,11 +254,10 @@ public class FileManager {
 	        {
 	        	nfe.printStackTrace();
 	        } 
-	        /**catch (ParseException e) 
+	        catch (ParseException e) 
 	        {
 				e.printStackTrace();
-			}
-			**/
+			} 
 	        finally{
 	        	if(csvReader!=null ){
 	        		try 
