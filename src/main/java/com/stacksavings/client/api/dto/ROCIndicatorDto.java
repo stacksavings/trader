@@ -8,7 +8,7 @@ import eu.verdelhan.ta4j.Tick;
  * @author jpcol
  *
  */
-public class ROCIndicatorDto {
+public class ROCIndicatorDto implements Comparable<ROCIndicatorDto> {
 
 	private Tick tick;
 	private Decimal decimal;
@@ -33,6 +33,12 @@ public class ROCIndicatorDto {
 
 	public void setDecimal(Decimal decimal) {
 		this.decimal = decimal;
+	}
+
+	@Override
+	public int compareTo(ROCIndicatorDto o) 
+	{
+		return o.getDecimal().compareTo(this.getDecimal());
 	}
 
 }

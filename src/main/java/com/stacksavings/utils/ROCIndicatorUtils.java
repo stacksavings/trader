@@ -1,6 +1,8 @@
 package com.stacksavings.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.stacksavings.client.api.dto.ROCIndicatorDto;
@@ -41,25 +43,44 @@ public class ROCIndicatorUtils {
     	return resultFinal;
     }	   
    
+   /**
+    * 
+    * @param result
+    * @return
+    */
    public static List<ROCIndicatorDto> calculateRisePriceDto(List<ROCIndicatorDto> result)
    {
 	    List<ROCIndicatorDto> resultFinal = new ArrayList<ROCIndicatorDto>();
 	   
 	   	int i = 0;
-	   	while( i < result.size()){
+	   	while( i < result.size())
+	   	{
 	   		ROCIndicatorDto number = result.get(i);
-	   		if(number.getDecimal().isPositive()){
+	   		if(number.getDecimal().isPositive())
+	   		{
 	   			// Check if there are 3 times positives
 	   			i++;
-	   			if(i < result.size() && result.get(i).getDecimal().isPositive()){
+	   			if(i < result.size() && result.get(i).getDecimal().isPositive())
+	   			{
 	   				i++;
-	   				if(i < result.size() && result.get(i).getDecimal().isPositive()){
+	   				if(i < result.size() && result.get(i).getDecimal().isPositive())
+	   				{
 	   					resultFinal.add(result.get(i));
 	   				}
 	   			}
 	   		}
 	   		i++;
 	   	}
+	   	
+	   	Collections.sort(resultFinal);
+	   	
+	   	if(resultFinal.size()>=5){
+	   		resultFinal = resultFinal.subList(0, 4);
+	   	}
+	   	
 	   	return resultFinal;
    }
+   
+   
+  
 }
