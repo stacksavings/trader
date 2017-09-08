@@ -117,19 +117,19 @@ public class PoloniexClientApi {
 			
 			String sDate = fileManager.getLastDateFromCSVFile(currencyPair);
 			
-			ZonedDateTime zonedDateTime=ZonedDateTime.parse(sDate);
+			//ZonedDateTime zonedDateTime=ZonedDateTime.parse(sDate);
 			
-			//Date dDate = sdf.parse(sDate);
+			Date dDate = sdf.parse(sDate);
 			
-			//Date dDateNow = new Date();
+			Date dDateNow = new Date();
 						
-			// Long lDateBegin = dDate.getTime()/1000;
-			Long lDateBegin = zonedDateTime.toInstant().toEpochMilli()/1000;
+			Long lDateBegin = dDate.getTime()/1000;
+			//Long lDateBegin = zonedDateTime.toInstant().toEpochMilli()/1000;
 						
 			restApiService = restApiService.replaceAll("startbegin", lDateBegin.toString() );
 			
-			// Long lDateEnd = dDateNow.getTime()/1000;
-			Long lDateEnd = ZonedDateTime.now().withZoneSameLocal(ZoneId.systemDefault()).toInstant().toEpochMilli()/1000;
+			Long lDateEnd = dDateNow.getTime()/1000;
+			//Long lDateEnd = ZonedDateTime.now().withZoneSameLocal(ZoneId.systemDefault()).toInstant().toEpochMilli()/1000;
 			
 			restApiService = restApiService.replaceAll("startend", lDateEnd.toString());
 			
@@ -155,11 +155,11 @@ public class PoloniexClientApi {
 		{
 			loggerManager.error(e.getMessage());
 		} 
-		/* catch (ParseException e) 
+		catch (ParseException e) 
 		{
 			loggerManager.error(e.getMessage());
 		}
-		*/
+		
 		return null;
 	}
 
