@@ -25,14 +25,16 @@ public class ChartData {
 	public String getDate() {
 		
 		Date dDate=new Date(Long.parseLong(date)*1000);
-		SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Instant instant = dDate.toInstant();
-		ZonedDateTime LAZone= instant.atZone(ZoneId.systemDefault());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		
+//		Instant instant = dDate.toInstant();
+//		ZonedDateTime LAZone= instant.atZone(ZoneId.systemDefault());
 		//System.out.println("In Los Angeles(America) Time Zone:"+ LAZone);
 		//ZoneId.systemDefault()
 		// dt.setTimeZone(ZoneId.systemDefault());
 		//return dt.format(dDate);
-		return LAZone.toString();
+		//return LAZone.toString();
+		return sdf.format(dDate);
 		
 	}
 

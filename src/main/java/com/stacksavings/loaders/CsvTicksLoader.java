@@ -7,15 +7,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 
 import com.opencsv.CSVReader;
 import com.stacksavings.utils.Constants;
@@ -80,7 +80,9 @@ public class CsvTicksLoader {
         	
             String[] line;
             while ((line = csvReader.readNext()) != null) {
-                ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
+                //ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
+            	DateTime date = DateTime.parse(line[0], DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+                
                 double open = Double.parseDouble(line[1]);
                 double high = Double.parseDouble(line[2]);
                 double low = Double.parseDouble(line[3]);
@@ -120,7 +122,9 @@ public class CsvTicksLoader {
             while ((line = csvReader.readNext()) != null) 
             {
                 //ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
-                ZonedDateTime date = ZonedDateTime.parse(line[0]).withZoneSameInstant(ZoneId.systemDefault());
+                // ZonedDateTime date = ZonedDateTime.parse(line[0]).withZoneSameInstant(ZoneId.systemDefault());
+                DateTime date = DateTime.parse(line[0], DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+                
                 double open = Double.parseDouble(line[1]);
                 double high = Double.parseDouble(line[2]);
                 double low = Double.parseDouble(line[3]);

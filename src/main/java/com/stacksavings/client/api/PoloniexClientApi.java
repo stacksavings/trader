@@ -184,10 +184,18 @@ public class PoloniexClientApi {
 	public void execute()
 	{
 		List<String> currencyList = this.returnCurrencyPair();
-		for (String currencyPair : currencyList) {
-			List<ChartData> chartDataList = this.returnChartData(currencyPair);
-			fileManager.writeCSV(currencyPair, chartDataList);
+		if(currencyList !=null && currencyList.size() > 0)
+		{
+			for (String currencyPair : currencyList) {
+				List<ChartData> chartDataList = this.returnChartData(currencyPair);
+				fileManager.writeCSV(currencyPair, chartDataList);
+			}
 		}
+		else
+		{
+			System.out.println("No hay datos");
+		}
+		
 	}
 	
 	public static void main(String[] args) {

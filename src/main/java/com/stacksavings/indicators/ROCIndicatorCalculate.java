@@ -58,35 +58,44 @@ public class ROCIndicatorCalculate {
 	public void calculateROC()
 	{
 		List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
-		for (String currency : currencyPairList) 
+		
+		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
-			String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
-			
-			TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
-			ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-			
-			ROCIndicator roc = new ROCIndicator(closePrice, Constants.TIME_FRAME_12);
-			
-			final int nbTicks = series.getTickCount();
-	        
-	        List<Decimal> results =new ArrayList<Decimal>();
-	        List<ROCIndicatorDto> resultROC = new ArrayList<ROCIndicatorDto>();
-	        
-	        for (int i = 0; i < nbTicks; i++) 
-	        {	
-	        	results.add(roc.getValue(i));
-	        	
-	        	resultROC.add(new ROCIndicatorDto(series.getTick(i), roc.getValue(i)));
-	        }
-	        
-	        List<ROCIndicatorDto> resultFinal =  ROCIndicatorUtils.calculateRisePriceDto(resultROC);
-	        System.out.println("****  BUY Signal for currency : "+currency);
-	        for (ROCIndicatorDto rocIndicatorDto : resultFinal) 
-	        {
-				System.out.println("BeginTime: "+rocIndicatorDto.getTick().getBeginTime()+ " Decimal: "+rocIndicatorDto.getDecimal());
+			for (String currency : currencyPairList) 
+			{
+				String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
+				
+				TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
+				ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+				
+				ROCIndicator roc = new ROCIndicator(closePrice, Constants.TIME_FRAME_12);
+				
+				final int nbTicks = series.getTickCount();
+		        
+		        List<Decimal> results =new ArrayList<Decimal>();
+		        List<ROCIndicatorDto> resultROC = new ArrayList<ROCIndicatorDto>();
+		        
+		        for (int i = 0; i < nbTicks; i++) 
+		        {	
+		        	results.add(roc.getValue(i));
+		        	
+		        	resultROC.add(new ROCIndicatorDto(series.getTick(i), roc.getValue(i)));
+		        }
+		        
+		        List<ROCIndicatorDto> resultFinal =  ROCIndicatorUtils.calculateRisePriceDto(resultROC);
+		        System.out.println("****  BUY Signal for currency : "+currency);
+		        for (ROCIndicatorDto rocIndicatorDto : resultFinal) 
+		        {
+					System.out.println("BeginTime: "+rocIndicatorDto.getTick().getBeginTime()+ " Decimal: "+rocIndicatorDto.getDecimal());
+				}
+		        
 			}
-	        
+		} 
+		else
+		{
+			System.out.println("No hay datos del servicio web");
 		}
+
 	}
 	
 	public static void main(String[] args) {

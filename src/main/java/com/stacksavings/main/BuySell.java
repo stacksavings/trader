@@ -50,7 +50,7 @@ public class BuySell {
             Tick tick = tickSeries.getTick(i);
             //chartTimeSeries.add(new Minute(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
             //chartTimeSeries.addOrUpdate(new Minute(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
-            chartTimeSeries.addOrUpdate(new Second(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
+            //chartTimeSeries.addOrUpdate(new Second(Date.from(tick.getEndTime().toInstant())), indicator.getValue(i).toDouble());
         }
         return chartTimeSeries;
     }
@@ -69,14 +69,14 @@ public class BuySell {
         for (Trade trade : trades) {
             // Buy signal
             //double buySignalTickTime = new Minute(Date.from(series.getTick(trade.getEntry().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
-            double buySignalTickTime = new Second(Date.from(series.getTick(trade.getEntry().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
+            double buySignalTickTime = 0; //new Second(Date.from(series.getTick(trade.getEntry().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
             Marker buyMarker = new ValueMarker(buySignalTickTime);
             buyMarker.setPaint(Color.GREEN);
             buyMarker.setLabel("B");
             plot.addDomainMarker(buyMarker);
             // Sell signal
             //double sellSignalTickTime = new Minute(Date.from(series.getTick(trade.getExit().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
-            double sellSignalTickTime = new Second(Date.from(series.getTick(trade.getExit().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
+            double sellSignalTickTime = 0; // new Second(Date.from(series.getTick(trade.getExit().getIndex()).getEndTime().toInstant())).getFirstMillisecond();
             Marker sellMarker = new ValueMarker(sellSignalTickTime);
             sellMarker.setPaint(Color.RED);
             sellMarker.setLabel("S");
