@@ -214,10 +214,10 @@ public class FileManager {
 		calendar.setTime(date);
 		calendar.add(Calendar.MINUTE, -2400);
 		
-		//String dateNowTime = sdTime.format(new Date(calendar.getTimeInMillis()));
+		String dateNowTime = sdTime.format(new Date(calendar.getTimeInMillis()));
 		
-		String resultFinal = ZonedDateTime.now().withZoneSameLocal(ZoneId.systemDefault()).minusMinutes(2400).toString();
-		//String resultFinal = dateNowTime;
+		// String resultFinal = ZonedDateTime.now().withZoneSameLocal(ZoneId.systemDefault()).minusMinutes(2400).toString();
+		String resultFinal = dateNowTime;
 		
 		if(file.exists() && !file.isDirectory()) { 
 		    // recuperar el ultimo registro
