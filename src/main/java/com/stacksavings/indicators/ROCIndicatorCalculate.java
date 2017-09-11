@@ -86,7 +86,7 @@ public class ROCIndicatorCalculate {
 		        System.out.println("****  BUY Signal for currency : "+currency);
 		        for (ROCIndicatorDto rocIndicatorDto : resultFinal) 
 		        {
-					System.out.println("BeginTime: "+rocIndicatorDto.getTick().getBeginTime()+ " Decimal: "+rocIndicatorDto.getDecimal()+" Price: "+rocIndicatorDto.getTick().getClosePrice());
+					System.out.println("BeginTime: "+rocIndicatorDto.getTick().getEndTime()+ " Decimal: "+rocIndicatorDto.getDecimal()+" Price: "+rocIndicatorDto.getTick().getClosePrice());
 				}
 		        
 			}
