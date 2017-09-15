@@ -185,17 +185,19 @@ public class FileManager {
 		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
 		File fileDirectory = new File(directoryPath);
 		
-		for(File file :fileDirectory.listFiles())
+		if (fileDirectory.listFiles() ! = null) 
 		{
-			String name = file.getName();
-			if(!name.equals(dateNow))
+			for(File file :fileDirectory.listFiles())
 			{
-				loggerManager.info("directory will be removed: "+ dateNow);
-				
-				removeDirectory(name);
+				String name = file.getName();
+				if(!name.equals(dateNow))
+				{
+					loggerManager.info("directory will be removed: "+ dateNow);
+
+					removeDirectory(name);
+				}
 			}
 		}
-		
 	}
 	
 	/**
