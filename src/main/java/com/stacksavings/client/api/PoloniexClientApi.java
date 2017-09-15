@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -85,7 +86,10 @@ public class PoloniexClientApi {
 			JSONObject jsonObject =new JSONObject(EntityUtils.toString(entity1));
 			Set<String> iterator = jsonObject.keySet();
 			for (String item : iterator) {
-				currencyPair.add(item);
+				//Limit to just pairs starting with btc, for now, as this way we are always comparing same baseline currency
+				if (StringUtils.startsWithIgnoreCase(item,"btc")) {
+					currencyPair.add(item);
+				}
 			}
 			
 			loggerManager.info("end returnCurrencyPair");
