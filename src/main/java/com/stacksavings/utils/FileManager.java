@@ -185,7 +185,7 @@ public class FileManager {
 		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
 		File fileDirectory = new File(directoryPath);
 		
-		if (fileDirectory.listFiles() != null)
+		if (fileDirectory.listFiles() != null) 
 		{
 			for(File file :fileDirectory.listFiles())
 			{
