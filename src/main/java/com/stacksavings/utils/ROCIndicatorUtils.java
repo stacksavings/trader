@@ -48,7 +48,7 @@ public class ROCIndicatorUtils {
     * @param result
     * @return
     */
-   public static List<ROCIndicatorDto> calculateRisePriceDto(List<ROCIndicatorDto> result)
+   public static List<ROCIndicatorDto> calculateRisePriceDto(List<ROCIndicatorDto> result, final int numResultsPerCurrency)
    {
 	    List<ROCIndicatorDto> resultFinal = new ArrayList<ROCIndicatorDto>();
 	   
@@ -74,8 +74,8 @@ public class ROCIndicatorUtils {
 	   	
 	   	Collections.sort(resultFinal);
 	   	
-	   	if(resultFinal.size()>=5){
-	   		resultFinal = resultFinal.subList(0, 4);
+	   	if(resultFinal.size() >= numResultsPerCurrency){
+	   		resultFinal = resultFinal.subList(0, numResultsPerCurrency - 1);
 	   	}
 	   	
 	   	return resultFinal;

@@ -36,9 +36,12 @@ public class ROCIndicatorDto implements Comparable<ROCIndicatorDto> {
 	}
 
 	@Override
-	public int compareTo(ROCIndicatorDto o) 
+	/**
+	 * Sorty by tick end time
+	 */
+	public int compareTo(ROCIndicatorDto rocIndicatorDto)
 	{
-		return o.getDecimal().compareTo(this.getDecimal());
+		return rocIndicatorDto.getTick().getEndTime().compareTo(this.getTick().getEndTime());
 	}
 
 }

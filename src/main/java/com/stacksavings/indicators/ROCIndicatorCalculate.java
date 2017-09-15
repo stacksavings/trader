@@ -8,6 +8,7 @@ import com.stacksavings.client.api.dto.ROCIndicatorDto;
 import com.stacksavings.loaders.CsvTicksLoader;
 import com.stacksavings.utils.Constants;
 import com.stacksavings.utils.FileManager;
+import com.stacksavings.utils.PropertiesUtil;
 import com.stacksavings.utils.ROCIndicatorUtils;
 
 import eu.verdelhan.ta4j.Decimal;
@@ -26,6 +27,8 @@ public class ROCIndicatorCalculate {
 	private CsvTicksLoader csvTicksLoader;
 	private PoloniexClientApi poloniexClientApi;
 	private FileManager fileManager;
+	private PropertiesUtil propertiesUtil;
+	private int numResultsPerCurrency;
 	
 	/**
 	 * 
@@ -49,6 +52,8 @@ public class ROCIndicatorCalculate {
 		csvTicksLoader = CsvTicksLoader.getInstance();
 		poloniexClientApi = PoloniexClientApi.getInstance();
 		fileManager = FileManager.getInstance();
+		propertiesUtil = PropertiesUtil.getInstance();
+		numResultsPerCurrency = Integer.parseInt(propertiesUtil.getProps().getProperty("num_results_per_currency"));
 	}
 	
 	
@@ -82,7 +87,7 @@ public class ROCIndicatorCalculate {
 		        	resultROC.add(new ROCIndicatorDto(series.getTick(i), roc.getValue(i)));
 		        }
 		        
-		        List<ROCIndicatorDto> resultFinal =  ROCIndicatorUtils.calculateRisePriceDto(resultROC);
+		        List<ROCIndicatorDto> resultFinal =  ROCIndicatorUtils.calculateRisePriceDto(resultROC, numResultsPerCurrency);
 		        System.out.println("****  BUY Signal for currency : "+currency);
 		        for (ROCIndicatorDto rocIndicatorDto : resultFinal) 
 		        {
