@@ -16,6 +16,17 @@ This project uses the next dependencies
 
 # Filter Maven
 
+we have 3 environment in this project. 
+
+- local, this enviroment is by default in fact you can see in pom.xml file it's setted 
+```xml
+	<properties>
+		<env>local</env>
+	</properties>
+```
+- c9, this enviroment is c9.io
+
+- server this enviroment is official.
 
 
 # Propierties file
