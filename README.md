@@ -37,39 +37,21 @@ return.chart.data = ${return.chart.data}
 return.ticker = ${return.ticker}
 filename = ${filename}
 filename.extension = ${filename.extension}
-
 ```
 
-# How get data from poloniex
+# How start up the project
 
-You just have to execute PoloniexClientApi.java class
-
-In C9.io environment, just execute this command,
+Execute this command( this is for server environment ), look at -Denv=server
 
 ```linux
-mvn exec:java -Dexec.mainClass="com.stacksavings.client.api.PoloniexClientApi"
+mvn clean install -DskipTests -Denv=server
 ```
 
-```java
-	public static void main(String[] args) {
 
-		PoloniexClientApi.getInstance().execute();
-		
-	}
-```
+Execute this command to analysis
 
- after it will generate a file csv in 
-
-```property
-path.directory = C://data_feed//
-```
-
-# Analyzing data
-
-Previusly must exist datas in /home/ubuntu/data_feed/ directory to analysis data.
-To display the price in BUY or SELL , just execute the next command
 
 ```linux
-mvn exec:java -Dexec.mainClass="com.stacksavings.main.BuySell"
+mvn exec:java -Dexec.mainClass="com.stacksavings.client.api.BatchMain"
 ```
 
