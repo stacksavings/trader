@@ -1,5 +1,6 @@
 package com.stacksavings.client.api;
 
+import com.stacksavings.indicators.AutomatedTrader;
 import com.stacksavings.indicators.ROCIndicatorCalculate;
 import com.stacksavings.utils.FileCleaner;
 
@@ -40,8 +41,10 @@ public class BatchMain {
 		FileCleaner.getInstance().clearDirectory();
 		
 		PoloniexClientApi.getInstance().execute();
-		
-		ROCIndicatorCalculate.getInstance().calculateROC();
+
+		//ROCIndicatorCalculate.getInstance().calculateROC();
+
+		AutomatedTrader.getInstance().run();
 		
 	}
 }
