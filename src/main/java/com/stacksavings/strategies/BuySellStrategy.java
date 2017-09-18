@@ -9,12 +9,7 @@ import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.indicators.trackers.EMAIndicator;
 import eu.verdelhan.ta4j.indicators.trackers.MACDIndicator;
 import eu.verdelhan.ta4j.indicators.trackers.SMAIndicator;
-import eu.verdelhan.ta4j.trading.rules.CrossedDownIndicatorRule;
-import eu.verdelhan.ta4j.trading.rules.CrossedUpIndicatorRule;
-import eu.verdelhan.ta4j.trading.rules.OverIndicatorRule;
-import eu.verdelhan.ta4j.trading.rules.StopGainRule;
-import eu.verdelhan.ta4j.trading.rules.StopLossRule;
-import eu.verdelhan.ta4j.trading.rules.UnderIndicatorRule;
+import eu.verdelhan.ta4j.trading.rules.*;
 
 
 /**
@@ -100,13 +95,23 @@ public class BuySellStrategy {
 	        // Entry rule
 	        Rule entryRule = new OverIndicatorRule(shortEma, longEma) // Trend
 	                .and(new CrossedDownIndicatorRule(stochasticOscillK, Decimal.valueOf(20))) // Signal 1
-	                .and(new OverIndicatorRule(macd, emaMacd)); // Signal 2
+	                .and(new OverIndicatorRule(macd, emaMacd))
+					//.and(new JustOnceRule())
+					; // Signal 2
+
 	        
 	        // Exit rule
 	        Rule exitRule = new UnderIndicatorRule(shortEma, longEma) // Trend
 	                .and(new CrossedUpIndicatorRule(stochasticOscillK, Decimal.valueOf(80))) // Signal 1
-	                .and(new UnderIndicatorRule(macd, emaMacd)); // Signal 2
-	        
+	                .and(new UnderIndicatorRule(macd, emaMacd))
+						//	.and(new JustOnceRule())
+					; // Signal 2
+
+		//TODO I think for real time trading, we would have to use the FixedRule and give it the last tick index so that it can only trade
+		//for that index, because, for real trading, we can only trade based on the most recent tick, as the others are all in the past and
+		//no longer relevant creating a new real trade
+
+
 	        return new Strategy(entryRule, exitRule);
 	}
 }
