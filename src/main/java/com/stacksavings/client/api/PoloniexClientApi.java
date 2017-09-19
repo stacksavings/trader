@@ -3,8 +3,6 @@ package com.stacksavings.client.api;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -169,6 +167,87 @@ public class PoloniexClientApi {
 
 	
 	/**
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param currencyPair
+	 * @return
+	 */
+	public List<ChartData> returnChartDataFromDateToDate(String fromDate, String toDate, String currencyPair) 
+	{
+		loggerManager.info("begin returnChartData:"+currencyPair);
+		
+		CloseableHttpClient client = HttpClients.createDefault();
+		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
+		
+		try {
+			
+			SimpleDateFormat sdf =new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
+			
+			Date dFromDate = sdf.parse(fromDate);
+			
+			Date dToDate = sdf.parse(toDate);
+			
+			Long lDateBegin = dFromDate.getTime()/1000;
+			
+			 Long lDateEnd = dToDate.getTime()/1000;
+			// String sDate = fileManager.getLastDateFromCSVFile(currencyPair);
+			
+			// ZonedDateTime zonedDateTime=ZonedDateTime.parse(sDate);
+			
+			// Date dDate = sdf.parse(sDate);
+			
+			// Date dDateNow = new Date();
+						
+			// Long lDateBegin = dDate.getTime()/1000;
+			// Long lDateBegin = zonedDateTime.toInstant().toEpochMilli()/1000;
+						
+			restApiService = restApiService.replaceAll("startbegin", lDateBegin.toString() );
+			
+			// Long lDateEnd = dDateNow.getTime()/1000;
+			// Long lDateEnd = ZonedDateTime.now().withZoneSameLocal(ZoneId.systemDefault()).toInstant().toEpochMilli()/1000;
+			
+			restApiService = restApiService.replaceAll("startend", lDateEnd.toString() );
+			
+			restApiService = restApiService.replaceAll("currency_pair", currencyPair);
+			
+			HttpGet request = new HttpGet(restApiService);
+			HttpResponse response;
+			
+			response = client.execute(request);
+			HttpEntity entity1 = response.getEntity();
+			byte[] byteData = EntityUtils.toByteArray(entity1);
+
+			ObjectMapper objectMapper = new ObjectMapper();
+
+			List<ChartData> chartDataList = Arrays.asList(objectMapper.readValue(byteData, ChartData[].class));
+
+			loggerManager.info("end returnChartData");
+			
+			return chartDataList;
+
+		} 
+		catch (IOException e) 
+		{
+			loggerManager.error(e.getMessage());
+		} 
+		catch (ParseException e) 
+		{
+			loggerManager.error(e.getMessage());
+		} 
+			
+		/**
+		 catch (ParseException e) 
+		{
+			loggerManager.error(e.getMessage());
+		}
+		*/
+		
+		return null;
+	}
+	
+	
+	/**
 	 * Call this method every time in cron schedule
 	 */
 	public void generateCSVFile()
@@ -193,6 +272,28 @@ public class PoloniexClientApi {
 			for (String currencyPair : currencyList) {
 				List<ChartData> chartDataList = this.returnChartData(currencyPair);
 				fileManager.writeCSV(currencyPair, chartDataList);
+			}
+		}
+		else
+		{
+			System.out.println("No hay datos");
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * @param currencyPair
+	 */
+	public void execute(String fromDate, String toDate)
+	{
+		List<String> currencyList = this.returnCurrencyPair();
+		if(currencyList !=null && currencyList.size() > 0)
+		{
+			for (String currencyPair : currencyList) 
+			{
+				List<ChartData> chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair);
+				fileManager.writeCSV(fromDate, toDate, currencyPair, chartDataList);
 			}
 		}
 		else

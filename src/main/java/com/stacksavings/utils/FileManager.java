@@ -91,6 +91,48 @@ public class FileManager {
 		return file;
 	}
 	
+	
+	/**
+	 * Build a File Object from properties 
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param currencyPair
+	 * @return
+	 */
+	private File getFileByName(String fromDate, String toDate, String currencyPair)
+	{
+		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		String fileName = propertiesUtil.getProps().getProperty("filename");
+		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
+		
+		SimpleDateFormat sdf2 = new SimpleDateFormat(Constants.YYYY_MM_DD);
+		
+		//String dateNow = sdf.format(new Date());
+		
+		SimpleDateFormat sdf =new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
+		
+		try {
+			Date dFromDate = sdf.parse(fromDate);
+			
+			Date dToDate = sdf.parse(toDate);
+			
+			String sFromDate = sdf2.format(dFromDate);
+			
+			String sToDate = sdf2.format(dToDate);
+			
+			File file = new File(directoryPath+"//"+sFromDate+"_"+sToDate+"//"+currencyPair+"_"+fileName+"_"+sFromDate+"_"+sToDate+"."+filenameExtension);
+		
+			return file;
+		} 
+		catch (ParseException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * This method write a csv file
 	 * @param chartDataList
@@ -142,12 +184,109 @@ public class FileManager {
 	}
 	
 	/**
+	 * This method write a csv file
+	 * @param chartDataList
+	 */
+	public void writeCSV(String fromDate, String toDate, String currencyPair, List<ChartData> chartDataList) 
+	{
+
+		if(chartDataList != null && chartDataList.size()>0)
+		{
+			PrintWriter out = null;
+			try 
+			{
+				// SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
+				
+				// String dateNow = sdf.format(new Date());
+				
+				createDirectory(fromDate, toDate);
+				
+				File file = getFileByName(fromDate, toDate, currencyPair);
+				
+				out = new PrintWriter(new FileWriter(file, true));
+				
+				for (ChartData chartData : chartDataList) 
+				{
+					if(chartData.getClose() != 0d && chartData.getHigh() != 0d && 
+					   chartData.getLow() != 0d && chartData.getOpen() != 0d && 
+					   chartData.getQuoteVolume() != 0 && chartData.getVolume() != 0d)
+					{
+						out.println(chartData.toString());
+					}
+					
+				}
+			} 
+			catch (FileNotFoundException e) 
+			{
+				e.printStackTrace();
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+			}
+			finally
+			{
+				if(out != null)
+				{
+					out.close();
+				}
+			}
+		}
+	}
+	
+	
+	/**
 	 * This method create a directory if it doesn't exists
-	 * @param directoryName
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 */
+	public void createDirectory(String fromDate, String toDate)
+	{
+		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		
+		
+		SimpleDateFormat sdf2 = new SimpleDateFormat(Constants.YYYY_MM_DD);
+		
+		//String dateNow = sdf.format(new Date());
+		
+		SimpleDateFormat sdf =new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
+		
+		try {
+			Date dFromDate = sdf.parse(fromDate);
+			
+			Date dToDate = sdf.parse(toDate);
+			
+			String sFromDate = sdf2.format(dFromDate);
+			
+			String sToDate = sdf2.format(dToDate);
+
+			File file = new File(directoryPath+"//"+sFromDate+"_"+sToDate);
+			
+			if(!file.exists())
+			{
+				file.mkdir();
+			}
+		}
+		catch(ParseException e)
+		{
+			e.printStackTrace();
+		}
+		
+
+	}
+	
+	
+	/**
+	 * This method create a directory if it doesn't exists
+	 * 
+	 * @param fromDate
+	 * @param toDate
 	 */
 	public void createDirectory(String directoryName)
 	{
 		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
+		
 		File file = new File(directoryPath+"//"+directoryName);
 		
 		if(!file.exists()){
