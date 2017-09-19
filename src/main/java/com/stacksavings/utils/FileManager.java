@@ -100,7 +100,7 @@ public class FileManager {
 	 * @param currencyPair
 	 * @return
 	 */
-	private File getFileByName(String fromDate, String toDate, String currencyPair)
+	public File getFileByName(String fromDate, String toDate, String currencyPair)
 	{
 		String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
 		String fileName = propertiesUtil.getProps().getProperty("filename");

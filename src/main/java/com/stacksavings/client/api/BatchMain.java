@@ -38,13 +38,29 @@ public class BatchMain {
 	public static void main(String[] args) 
 	{
 
-		FileCleaner.getInstance().clearDirectory();
-		
-		PoloniexClientApi.getInstance().execute();
+		final boolean downloadData = false;
+		final boolean runTrader = true;
 
-		//ROCIndicatorCalculate.getInstance().calculateROC();
 
-		AutomatedTrader.getInstance().run();
+		if (downloadData) {
+			FileCleaner.getInstance().clearDirectory();
+
+			// yyyy-MM-dd HH:mm:ss
+			String fromDate = "2017-09-01 00:00:00";
+			// yyyy-MM-dd HH:mm:ss
+			String toDate = "2017-09-19 00:00:00";
+
+			PoloniexClientApi.getInstance().execute(fromDate, toDate);
+
+			//PoloniexClientApi.getInstance().execute();
+		}
+
+
+		if (runTrader) {
+			//ROCIndicatorCalculate.getInstance().calculateROC();
+
+			AutomatedTrader.getInstance().run();
+		}
 		
 	}
 }

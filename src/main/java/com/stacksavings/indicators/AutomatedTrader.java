@@ -10,6 +10,7 @@ import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
 import org.joda.time.DateTime;
+import java.io.File;
 
 import java.util.*;
 
@@ -76,13 +77,17 @@ public class AutomatedTrader {
 		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
 
-			final List<TradingRecord> tradingRecords = new ArrayList<TradingRecord>();
-
 			//TODO this can get a bit complicated because we will hold positions between runs of this program, for now, it will work for back testing only
 
 			for (String currency : currencyPairList)
 			{
-				String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
+				//String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
+
+				String fromDate = "2017-09-01 00:00:00";
+				String toDate = "2017-09-19 00:00:00";
+
+				final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
+				final String fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
 				
 				final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
 
@@ -109,27 +114,28 @@ public class AutomatedTrader {
 					final Tick tick = series.getTick(i);
 
 
-					//If stop loss is triggered, take this out of any future trading
-					//This is an experiment to try removing ones that trigger a stop loss, the idea is that we may want to decide not to trade
-					//certain currencies at all, as they may be too volatile for an algorithm
-					if (tradingRecord != null && !tradingRecord.isClosed()) {
+					final boolean checkForStopLoss = false;
+					if (checkForStopLoss) {
+						//If stop loss is triggered, take this out of any future trading
+						//This is an experiment to try removing ones that trigger a stop loss, the idea is that we may want to decide not to trade
+						//certain currencies at all, as they may be too volatile for an algorithm
+						if (tradingRecord != null && !tradingRecord.isClosed()) {
 
-						final Decimal lastEntryPrice = tradingRecord.getLastEntry().getPrice();
-						boolean shouldStopLoss = stopLossRule.isSatisfied(curIndex, tradingRecord);
-						if (shouldStopLoss) {
-							boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), tradingRecord.getLastEntry().getAmount());
-							if (exited) {
-								Order exit = tradingRecord.getLastExit();
-								System.out.println("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
-										calculatePercentChange(lastEntryPrice, exit.getPrice()) + " on index: " + exit.getIndex()
-										+ " (price=" + exit.getPrice().toDouble()
-										+ ", amount=" + exit.getAmount().toDouble() + ")");
-								break;
+							final Decimal lastEntryPrice = tradingRecord.getLastEntry().getPrice();
+							boolean shouldStopLoss = stopLossRule.isSatisfied(curIndex, tradingRecord);
+							if (shouldStopLoss) {
+								boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), tradingRecord.getLastEntry().getAmount());
+								if (exited) {
+									Order exit = tradingRecord.getLastExit();
+									System.out.println("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
+											calculatePercentChange(lastEntryPrice, exit.getPrice()) + " on index: " + exit.getIndex()
+											+ " (price=" + exit.getPrice().toDouble()
+											+ ", amount=" + exit.getAmount().toDouble() + ")");
+									break;
+								}
 							}
 						}
 					}
-
-
 
 
 					if (strategy.shouldEnter(curIndex, tradingRecord)) {
