@@ -4,6 +4,9 @@ import com.stacksavings.indicators.AutomatedTrader;
 import com.stacksavings.indicators.ROCIndicatorCalculate;
 import com.stacksavings.utils.FileCleaner;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 
  * @author jpcol
@@ -38,6 +41,24 @@ public class BatchMain {
 	public static void main(String[] args) 
 	{
 
+		//Currencies that have been determined to potentially be less likely to be profitable
+		final List<String> currencySkipList = Arrays.asList(
+				"BTC_BELA",
+				"BTC_XBC",
+				"BTC_GAME",
+				"BTC_GAS",
+				"BTC_OMNI",
+				"BTC_NXT",
+				"BTC_SC",
+				"BTC_RIC",
+				"BTC_STEEM",
+				"BTC_ZRX",
+				"BTC_FCT",
+				"BTC_CVC",
+				"BTC_ETC",
+				"BTC_LBC"
+		);
+
 		final boolean downloadData = false;
 		final boolean runTrader = true;
 
@@ -58,7 +79,7 @@ public class BatchMain {
 		if (runTrader) {
 			//ROCIndicatorCalculate.getInstance().calculateROC();
 
-			AutomatedTrader.getInstance().run(fromDate, toDate);
+			AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList);
 		}
 		
 	}
