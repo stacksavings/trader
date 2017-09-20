@@ -41,14 +41,13 @@ public class BatchMain {
 		final boolean downloadData = false;
 		final boolean runTrader = true;
 
+		// yyyy-MM-dd HH:mm:ss
+		String fromDate = "2017-07-01 00:00:00";
+		// yyyy-MM-dd HH:mm:ss
+		String toDate = "2017-09-19 00:00:00";
 
 		if (downloadData) {
 			FileCleaner.getInstance().clearDirectory();
-
-			// yyyy-MM-dd HH:mm:ss
-			String fromDate = "2017-09-01 00:00:00";
-			// yyyy-MM-dd HH:mm:ss
-			String toDate = "2017-09-19 00:00:00";
 
 			PoloniexClientApi.getInstance().execute(fromDate, toDate);
 
@@ -59,7 +58,7 @@ public class BatchMain {
 		if (runTrader) {
 			//ROCIndicatorCalculate.getInstance().calculateROC();
 
-			AutomatedTrader.getInstance().run();
+			AutomatedTrader.getInstance().run(fromDate, toDate);
 		}
 		
 	}

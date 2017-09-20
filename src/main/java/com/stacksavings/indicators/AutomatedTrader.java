@@ -58,7 +58,7 @@ public class AutomatedTrader {
 	/**
 	 * calculateROC
 	 */
-	public void run()
+	public void run(final String fromDate, final String toDate)
 	{
 		List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
 
@@ -82,9 +82,6 @@ public class AutomatedTrader {
 			for (String currency : currencyPairList)
 			{
 				//String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
-
-				String fromDate = "2017-09-01 00:00:00";
-				String toDate = "2017-09-19 00:00:00";
 
 				final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
 				final String fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
@@ -270,7 +267,7 @@ public class AutomatedTrader {
 	
 	public static void main(String[] args) {
 
-		AutomatedTrader.getInstance().run();
+		//AutomatedTrader.getInstance().run();
 		
 	}
 }
