@@ -19,8 +19,8 @@ public class PoloniexApiBuyTest
 	public void test()
 	{
 			
-		String currencyPair = "USDT_BCH";
-		BigDecimal buyPrice = BigDecimal.valueOf(420L);
+		String currencyPair = "BTC_BCH";
+		BigDecimal buyPrice = BigDecimal.valueOf(0.000574405);
 		
 		AutomatedTrader.getInstance().buy(currencyPair, buyPrice);
 		
