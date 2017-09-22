@@ -86,6 +86,9 @@ public class AutomatedTrader {
 
 		final List<String> currenciesEndingWithLoss = new ArrayList<String>();
 
+		if (liveTradeMode) {
+			System.out.println("******* BEGIN live trading iteration *******");
+		}
 
 		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
@@ -169,7 +172,11 @@ public class AutomatedTrader {
 		} 
 		else
 		{
-			System.out.println("No hay datos del servicio web");
+			System.out.println("Date missing, unable to process");
+		}
+
+		if (liveTradeMode) {
+			System.out.println("******* END live trading iteration *******");
 		}
 
 	}
