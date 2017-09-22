@@ -61,7 +61,7 @@ public class BatchMain {
 
 		final boolean downloadData = false;
 		final boolean runTrader = true;
-		final boolean liveTradeMode = true;
+		final boolean liveTradeMode = false;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
@@ -76,7 +76,7 @@ public class BatchMain {
 
 			//PoloniexClientApi.getInstance().execute();
 		} else if( liveTradeMode) {
-			//PoloniexClientApi.getInstance().execute();
+			PoloniexClientApi.getInstance().execute();
 		}
 
 
