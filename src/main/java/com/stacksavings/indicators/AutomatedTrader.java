@@ -125,7 +125,7 @@ public class AutomatedTrader {
 
 					//process only the most recent tick as that is the only one that is relevant in real time trading
 					processTick(currency, tradingRecord, series, strategy, stopLossRule, startingFunds, series.getEnd());
-					
+
 				} else {
 					//backtesting
 					for (int i = 0; i < series.getTickCount(); i++) {
@@ -246,7 +246,7 @@ public class AutomatedTrader {
 
 			final BigDecimal buyPrice = BigDecimal.valueOf(buyPriceDecimal.toDouble());
 
-			poloniexTraderClient.buy(currencyPair, buyPrice., BigDecimal.ONE);
+			poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.ONE);
 
 			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
 			entered = tradingRecord.enter(curIndex, closePrice, numberToBuy);
@@ -353,7 +353,6 @@ public class AutomatedTrader {
 	
 	public static void main(String[] args) {
 
-		//PoloniexTraderClient.getInstance().run();
 		
 	}
 }

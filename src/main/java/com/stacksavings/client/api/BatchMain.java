@@ -61,6 +61,7 @@ public class BatchMain {
 
 		final boolean downloadData = false;
 		final boolean runTrader = true;
+		final boolean liveTradeMode = false;
 
 		// yyyy-MM-dd HH:mm:ss
 		String fromDate = "2017-07-01 00:00:00";
@@ -79,7 +80,7 @@ public class BatchMain {
 		if (runTrader) {
 			//ROCIndicatorCalculate.getInstance().calculateROC();
 
-			AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList);
+			AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList, liveTradeMode);
 		}
 		
 	}
