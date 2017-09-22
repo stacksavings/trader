@@ -11,10 +11,10 @@ import com.cf.data.model.poloniex.PoloniexTradeHistory;
  * @author jpcol
  *
  */
-public class AutomatedTrader 
+public class PoloniexTraderClient
 {
 	
-	private static AutomatedTrader instance;
+	private static PoloniexTraderClient instance;
 	
 	private PropertiesUtil propertiesUtil;
 	
@@ -26,11 +26,11 @@ public class AutomatedTrader
 	 * 
 	 * @return
 	 */
-	public static AutomatedTrader getInstance() 
+	public static PoloniexTraderClient getInstance()
 	{
 	      if(instance == null) 
 	      {
-	         instance = new AutomatedTrader();
+	         instance = new PoloniexTraderClient();
 	      }
 	      
 	      return instance;
@@ -39,7 +39,7 @@ public class AutomatedTrader
 	/**
 	 * 
 	 */
-	private AutomatedTrader()
+	private PoloniexTraderClient()
 	{
 		propertiesUtil = PropertiesUtil.getInstance();
 		

@@ -285,7 +285,7 @@ public class AutomatedTrader {
 	
 	public static void main(String[] args) {
 
-		//AutomatedTrader.getInstance().run();
+		//PoloniexTraderClient.getInstance().run();
 		
 	}
 }
