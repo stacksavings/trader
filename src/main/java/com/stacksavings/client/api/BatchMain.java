@@ -4,6 +4,9 @@ import com.stacksavings.indicators.AutomatedTrader;
 import com.stacksavings.indicators.ROCIndicatorCalculate;
 import com.stacksavings.utils.FileCleaner;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 
  * @author jpcol
@@ -38,17 +41,34 @@ public class BatchMain {
 	public static void main(String[] args) 
 	{
 
+		//Currencies that have been determined to potentially be less likely to be profitable
+		final List<String> currencySkipList = Arrays.asList(
+				"BTC_BELA",
+				"BTC_XBC",
+				"BTC_GAME",
+				"BTC_GAS",
+				"BTC_OMNI",
+				"BTC_NXT",
+				"BTC_SC",
+				"BTC_RIC",
+				"BTC_STEEM",
+				"BTC_ZRX",
+				"BTC_FCT",
+				"BTC_CVC",
+				"BTC_ETC",
+				"BTC_LBC"
+		);
+
 		final boolean downloadData = false;
 		final boolean runTrader = true;
 
+		// yyyy-MM-dd HH:mm:ss
+		String fromDate = "2017-07-01 00:00:00";
+		// yyyy-MM-dd HH:mm:ss
+		String toDate = "2017-09-19 00:00:00";
 
 		if (downloadData) {
 			FileCleaner.getInstance().clearDirectory();
-
-			// yyyy-MM-dd HH:mm:ss
-			String fromDate = "2017-09-01 00:00:00";
-			// yyyy-MM-dd HH:mm:ss
-			String toDate = "2017-09-19 00:00:00";
 
 			PoloniexClientApi.getInstance().execute(fromDate, toDate);
 
@@ -59,7 +79,7 @@ public class BatchMain {
 		if (runTrader) {
 			//ROCIndicatorCalculate.getInstance().calculateROC();
 
-			AutomatedTrader.getInstance().run();
+			AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList);
 		}
 		
 	}

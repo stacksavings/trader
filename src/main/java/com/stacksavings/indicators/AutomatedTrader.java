@@ -58,7 +58,7 @@ public class AutomatedTrader {
 	/**
 	 * calculateROC
 	 */
-	public void run()
+	public void run(final String fromDate, final String toDate, final List<String> currencySkipList)
 	{
 		List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
 
@@ -74,6 +74,9 @@ public class AutomatedTrader {
 		/** The loss ratio threshold (e.g. 3 for 3%) */
 		final Decimal stopLossRatio = Decimal.valueOf(2.5);
 
+		final List<String> currenciesEndingWithLoss = new ArrayList<String>();
+
+
 		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
 
@@ -81,10 +84,11 @@ public class AutomatedTrader {
 
 			for (String currency : currencyPairList)
 			{
-				//String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
+				if (currencySkipList != null && currencySkipList.contains(currency)) {
+					continue;
+				}
 
-				String fromDate = "2017-09-01 00:00:00";
-				String toDate = "2017-09-19 00:00:00";
+				//String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
 
 				final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
 				final String fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
@@ -193,7 +197,13 @@ public class AutomatedTrader {
 					System.out.println("Total profit for the strategy: " + totalProfit);
 					System.out.println("Total starting funds: " + startingFunds);
 					System.out.println("Total ending funds: " + endingFunds);
-					System.out.println("Total % change: " + calculatePercentChange(startingFunds, endingFunds));
+
+					final Decimal totalPercentChange = calculatePercentChange(startingFunds, endingFunds);
+					if (totalPercentChange.isNegative()) {
+						currenciesEndingWithLoss.add(currency);
+					}
+
+					System.out.println("Total % change: " + totalPercentChange);
 
 					currencyTotals.put(currency, Arrays.asList(startingFunds, endingFunds));
 				} else {
@@ -203,7 +213,7 @@ public class AutomatedTrader {
 
 			}
 
-			calculateOverallGainLoss(currencyTotals);
+			calculateOverallGainLoss(currencyTotals, currenciesEndingWithLoss);
 
 		} 
 		else
@@ -213,7 +223,7 @@ public class AutomatedTrader {
 
 	}
 
-	private void calculateOverallGainLoss(final Map<String, List<Decimal>> currencyTotals) {
+	private void calculateOverallGainLoss(final Map<String, List<Decimal>> currencyTotals, final List<String> currenciesEndingWithLoss) {
 
 		Decimal start = Decimal.ZERO;
 		Decimal end = Decimal.ZERO;
@@ -235,6 +245,11 @@ public class AutomatedTrader {
 		System.out.println("Total start: " + start);
 		System.out.println("Total end: " + end);
 		System.out.println("Total % change: " + calculatePercentChange(start, end));
+		System.out.println("************************************************************");
+		System.out.println("Currencies ending with loss:");
+		for (final String currency : currenciesEndingWithLoss) {
+			System.out.println(currency);
+		}
 
 	}
 
@@ -270,7 +285,7 @@ public class AutomatedTrader {
 	
 	public static void main(String[] args) {
 
-		AutomatedTrader.getInstance().run();
+		//AutomatedTrader.getInstance().run();
 		
 	}
 }
