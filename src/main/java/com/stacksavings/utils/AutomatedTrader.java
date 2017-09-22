@@ -11,9 +11,42 @@ import com.cf.data.model.poloniex.PoloniexTradeHistory;
  * @author jpcol
  *
  */
-public class PoloniexApiBuy 
+public class AutomatedTrader 
 {
+	
+	private static AutomatedTrader instance;
+	
+	private PropertiesUtil propertiesUtil;
+	
+	private String key; 
+	
+	private String secret;
+		
+	/**
+	 * 
+	 * @return
+	 */
+	public static AutomatedTrader getInstance() 
+	{
+	      if(instance == null) 
+	      {
+	         instance = new AutomatedTrader();
+	      }
+	      
+	      return instance;
+	}
 
+	/**
+	 * 
+	 */
+	private AutomatedTrader()
+	{
+		propertiesUtil = PropertiesUtil.getInstance();
+		
+		this.key = propertiesUtil.getProps().getProperty("poloniex.api.key");
+		this.secret = propertiesUtil.getProps().getProperty("poloniex.api.secret");
+		
+	}
 	
 	/**
 	 * 
@@ -22,12 +55,10 @@ public class PoloniexApiBuy
 	 * @param currencyPair
 	 * @param buyPrice
 	 */
-	public static void buy(String key, String secret, String currencyPair, BigDecimal buyPrice)
+	public void buy( String currencyPair, BigDecimal buyPrice)
 	{
 		
-		String apiKey = key;
-		String apiSecret = secret;
-		PoloniexExchangeService service = new PoloniexExchangeService(apiKey, apiSecret);
+		PoloniexExchangeService service = new PoloniexExchangeService(this.key, this.secret);
 
 		BigDecimal amount = BigDecimal.ONE;
 		boolean fillOrKill = false;
