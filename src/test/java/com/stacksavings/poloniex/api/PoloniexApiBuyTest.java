@@ -19,10 +19,10 @@ public class PoloniexApiBuyTest
 	public void test()
 	{
 			
-		String currencyPair = "BTC_BCH";
-		BigDecimal buyPrice = BigDecimal.valueOf(0.000574405);
+		String currencyPair = "BTC_STEEM";
+		BigDecimal buyPrice = BigDecimal.valueOf(0.00028306);
 		
-		PoloniexTraderClient.getInstance().buy(currencyPair, buyPrice);
+		PoloniexTraderClient.getInstance().buy(currencyPair, buyPrice, BigDecimal.ONE);
 		
 	}
 }

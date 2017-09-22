@@ -55,12 +55,11 @@ public class PoloniexTraderClient
 	 * @param currencyPair
 	 * @param buyPrice
 	 */
-	public void buy( String currencyPair, BigDecimal buyPrice)
+	public void buy(final String currencyPair, final BigDecimal buyPrice, final BigDecimal amount)
 	{
 		
-		PoloniexExchangeService service = new PoloniexExchangeService(this.key, this.secret);
+		final PoloniexExchangeService service = new PoloniexExchangeService(this.key, this.secret);
 
-		BigDecimal amount = BigDecimal.ONE;
 		boolean fillOrKill = false;
 		boolean immediateOrCancel = false;
 		boolean postOnly = false;
