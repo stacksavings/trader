@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import org.junit.Test;
 
-import com.stacksavings.utils.AutomatedTrader;
+import com.stacksavings.utils.PoloniexTraderClient;
 
 /**
  * 
@@ -22,7 +22,7 @@ public class PoloniexApiBuyTest
 		String currencyPair = "BTC_BCH";
 		BigDecimal buyPrice = BigDecimal.valueOf(0.000574405);
 		
-		AutomatedTrader.getInstance().buy(currencyPair, buyPrice);
+		PoloniexTraderClient.getInstance().buy(currencyPair, buyPrice);
 		
 	}
 }
