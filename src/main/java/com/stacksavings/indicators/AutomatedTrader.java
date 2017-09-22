@@ -98,10 +98,13 @@ public class AutomatedTrader {
 					continue;
 				}
 
-				//String fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
-
-				final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
-				final String fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
+				String fileNameCurrencyPair = null;
+				if (liveTradeMode) {
+					fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
+				} else {
+					final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
+					fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
+				}
 				
 				final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
 
@@ -218,14 +221,16 @@ public class AutomatedTrader {
 			// Our strategy should exit
 			System.out.println("Strategy should EXIT on " + curIndex);
 
-			Decimal exitAmount = tradingRecord.getLastEntry().getAmount();
+			if (tradingRecord != null && tradingRecord.getLastEntry() != null) {
+				Decimal exitAmount = tradingRecord.getLastEntry().getAmount();
 
-			boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), exitAmount);
-			if (exited) {
-				Order exit = tradingRecord.getLastExit();
-				System.out.println("Exited on " + exit.getIndex()
-						+ " (price=" + exit.getPrice().toDouble()
-						+ ", amount=" + exit.getAmount().toDouble() + ")");
+				boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), exitAmount);
+				if (exited) {
+					Order exit = tradingRecord.getLastExit();
+					System.out.println("Exited on " + exit.getIndex()
+							+ " (price=" + exit.getPrice().toDouble()
+							+ ", amount=" + exit.getAmount().toDouble() + ")");
+				}
 			}
 		}
 
@@ -246,7 +251,7 @@ public class AutomatedTrader {
 
 			final BigDecimal buyPrice = BigDecimal.valueOf(buyPriceDecimal.toDouble());
 
-			poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.ONE);
+			poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.valueOf(numberToBuy.toDouble()));
 
 			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
 			entered = tradingRecord.enter(curIndex, closePrice, numberToBuy);

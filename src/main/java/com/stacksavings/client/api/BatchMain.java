@@ -61,26 +61,30 @@ public class BatchMain {
 
 		final boolean downloadData = false;
 		final boolean runTrader = true;
-		final boolean liveTradeMode = false;
+		final boolean liveTradeMode = true;
 
+		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
 		String fromDate = "2017-07-01 00:00:00";
 		// yyyy-MM-dd HH:mm:ss
 		String toDate = "2017-09-19 00:00:00";
 
-		if (downloadData) {
+		if (!liveTradeMode && downloadData) {
 			FileCleaner.getInstance().clearDirectory();
 
 			PoloniexClientApi.getInstance().execute(fromDate, toDate);
 
 			//PoloniexClientApi.getInstance().execute();
+		} else if( liveTradeMode) {
+			//PoloniexClientApi.getInstance().execute();
 		}
 
 
-		if (runTrader) {
-			//ROCIndicatorCalculate.getInstance().calculateROC();
+		if (!liveTradeMode && runTrader) {
 
 			AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList, liveTradeMode);
+		} else if (liveTradeMode) {
+			AutomatedTrader.getInstance().run(null, null, currencySkipList, liveTradeMode);
 		}
 		
 	}
