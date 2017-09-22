@@ -55,3 +55,20 @@ Execute this command to analysis
 mvn exec:java -Dexec.mainClass="com.stacksavings.client.api.BatchMain"
 ```
 
+# How install the jar poloniex-api-java in maven repositorie local
+
+Due to poloniex-api-java is not installed in maven repositorie central, we will clone the project from github and it will install poloniex-api-java jar in our maven repositorie local. After you will add it like dependency in pom.xml
+
+- Clone poloniex-api-java project in your local 
+- Execute "mvn clean install" command on poloniex-api-java project, it will install the jar in maven repositorie local
+- Finally you can add like dependency in pom.xml
+
+```xml
+	<dependency>
+		<groupId>com.cf</groupId>
+		<artifactId>PoloniexClient</artifactId>
+		<version>1.1-SNAPSHOT</version>
+         </dependency>
+```
+
+
