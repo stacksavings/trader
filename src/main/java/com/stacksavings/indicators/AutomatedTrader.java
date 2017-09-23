@@ -94,79 +94,83 @@ public class AutomatedTrader {
 		{
 			for (String currency : currencyPairList)
 			{
-				if (currencySkipList != null && currencySkipList.contains(currency)) {
-					continue;
-				}
-
-				if (poloniexTraderClient.areOpenPoloniexOrders(currency, null)) {
-					//TODO this logic is very rough, we need to figure a lot more on this as there could be orders
-					//that stay open a long time so we need logic to potentially cancel the order, etc, for now just skip
-					//if it has open poloniex order as we can't do another trade while it's open
-					continue;
-				}
-
-				String fileNameCurrencyPair = null;
-				if (liveTradeMode) {
-					fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
-				} else {
-					final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
-					fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
-				}
-				
-				final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
-
-				//TODO We should consider pulling the time frame values from a config file
-				final Strategy strategy = BuySellStrategy.buildStrategyEMA(series, 9, 26);
-
-				final ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-				final Rule stopLossRule = new StopLossRule(closePrice, stopLossRatio);
-
-
-				// Initializing the trading history
-				final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
-				System.out.println("************************************************************");
-				System.out.println("Currency: " + currency);
-
-				final Decimal startingFunds = null;
-
-				if (liveTradeMode) {
-
-					synchTradeAccountRecords(tradingRecord, currency);
-
-					//process only the most recent tick as that is the only one that is relevant in real time trading
-					processTick(currency, tradingRecord, series, strategy, stopLossRule, startingFunds, series.getEnd());
-
-				} else {
-					//backtesting
-					for (int i = 0; i < series.getTickCount(); i++) {
-						processTick(currency, tradingRecord, series, strategy, stopLossRule, startingFunds, i);
-
+				try {
+					if (currencySkipList != null && currencySkipList.contains(currency)) {
+						continue;
 					}
 
-					if (startingFunds != null) {
-						Decimal endingFunds = startingFunds;
-						if (tradingRecord.getLastExit() != null) {
-							endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
-						}
+					if (poloniexTraderClient.areOpenPoloniexOrders(currency, null)) {
+						//TODO this logic is very rough, we need to figure a lot more on this as there could be orders
+						//that stay open a long time so we need logic to potentially cancel the order, etc, for now just skip
+						//if it has open poloniex order as we can't do another trade while it's open
+						continue;
+					}
 
-						final double totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
-						System.out.println("Total profit for the strategy: " + totalProfit);
-						System.out.println("Total starting funds: " + startingFunds);
-						System.out.println("Total ending funds: " + endingFunds);
-
-						final Decimal totalPercentChange = calculatePercentChange(startingFunds, endingFunds);
-						if (totalPercentChange.isNegative()) {
-							currenciesEndingWithLoss.add(currency);
-						}
-
-						System.out.println("Total % change: " + totalPercentChange);
-
-						currencyTotals.put(currency, Arrays.asList(startingFunds, endingFunds));
+					String fileNameCurrencyPair = null;
+					if (liveTradeMode) {
+						fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
 					} else {
-						System.out.println("No trades made");
+						final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
+						fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
 					}
-				}
 
+					final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
+
+					//TODO We should consider pulling the time frame values from a config file
+					final Strategy strategy = BuySellStrategy.buildStrategyEMA(series, 9, 26);
+
+					final ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+					final Rule stopLossRule = new StopLossRule(closePrice, stopLossRatio);
+
+
+					// Initializing the trading history
+					final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
+					System.out.println("************************************************************");
+					System.out.println("Currency: " + currency);
+
+					final Decimal startingFunds = null;
+
+					if (liveTradeMode) {
+
+						synchTradeAccountRecords(tradingRecord, currency);
+
+						//process only the most recent tick as that is the only one that is relevant in real time trading
+						processTick(currency, tradingRecord, series, strategy, stopLossRule, startingFunds, series.getEnd());
+
+					} else {
+						//backtesting
+						for (int i = 0; i < series.getTickCount(); i++) {
+							processTick(currency, tradingRecord, series, strategy, stopLossRule, startingFunds, i);
+
+						}
+
+						if (startingFunds != null) {
+							Decimal endingFunds = startingFunds;
+							if (tradingRecord.getLastExit() != null) {
+								endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
+							}
+
+							final double totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
+							System.out.println("Total profit for the strategy: " + totalProfit);
+							System.out.println("Total starting funds: " + startingFunds);
+							System.out.println("Total ending funds: " + endingFunds);
+
+							final Decimal totalPercentChange = calculatePercentChange(startingFunds, endingFunds);
+							if (totalPercentChange.isNegative()) {
+								currenciesEndingWithLoss.add(currency);
+							}
+
+							System.out.println("Total % change: " + totalPercentChange);
+
+							currencyTotals.put(currency, Arrays.asList(startingFunds, endingFunds));
+						} else {
+							System.out.println("No trades made");
+						}
+					}
+				} catch (final Exception e) {
+					System.out.println("Exception encountered for currency " + currency + ", stack trace follows: ");
+					e.printStackTrace();
+				}
 
 			}
 			if (!liveTradeMode) {

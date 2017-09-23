@@ -130,12 +130,14 @@ public class PoloniexTraderClient
 		if (openOrders.size() < 1) {
 			final List<PoloniexTradeHistory> tradeHistories = service.returnTradeHistory(currencyPair);
 
-			final PoloniexTradeHistory mostRecentTrade = tradeHistories.get(0);
-			if (mostRecentTrade.type.equalsIgnoreCase("buy")) {
-				//there is an open order, so we record it
-				//TODO fix this later to be more accurate by using time series to determine index
-				tradingRecord.enter(0, Decimal.valueOf(mostRecentTrade.rate.longValue()), Decimal.valueOf(mostRecentTrade.amount.longValue()));
-				//trade left open to indicate we still hold a position in this currency
+			if (tradeHistories.size() > 0) {
+				final PoloniexTradeHistory mostRecentTrade = tradeHistories.get(0);
+				if (mostRecentTrade.type.equalsIgnoreCase("buy")) {
+					//there is an open order, so we record it
+					//TODO fix this later to be more accurate by using time series to determine index
+					tradingRecord.enter(0, Decimal.valueOf(mostRecentTrade.rate.longValue()), Decimal.valueOf(mostRecentTrade.amount.longValue()));
+					//trade left open to indicate we still hold a position in this currency
+				}
 			}
 
 			//find the most recent sell to record this
