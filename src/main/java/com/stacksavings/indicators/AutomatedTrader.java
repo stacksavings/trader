@@ -299,7 +299,7 @@ public class AutomatedTrader {
 	 */
 	private void synchTradeAccountRecords(final TradingRecord tradingRecord, final String currency) {
 
-		poloniexTraderClient.createTradingRecordFromLastSale(currency, tradingRecord);
+		poloniexTraderClient.createTradingRecordFromPoloniexTrade(currency, tradingRecord);
 	}
 
 	private Decimal determineTradeAmount(final TradingRecord tradingRecord, final Decimal currentPrice) {

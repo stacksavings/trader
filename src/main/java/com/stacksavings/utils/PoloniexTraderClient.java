@@ -122,7 +122,7 @@ public class PoloniexTraderClient
 		}*/
 	}
 
-	public void createTradingRecordFromLastSale(final String currencyPair, final TradingRecord tradingRecord) {
+	public void createTradingRecordFromPoloniexTrade(final String currencyPair, final TradingRecord tradingRecord) {
 
 		final List<PoloniexOpenOrder>  openOrders = service.returnOpenOrders(currencyPair);
 
@@ -130,16 +130,24 @@ public class PoloniexTraderClient
 		if (openOrders.size() < 1) {
 			final List<PoloniexTradeHistory> tradeHistories = service.returnTradeHistory(currencyPair);
 
+			final PoloniexTradeHistory mostRecentTrade = tradeHistories.get(0);
+			if (mostRecentTrade.type.equalsIgnoreCase("buy")) {
+				//there is an open order, so we record it
+				//TODO fix this later to be more accurate by using time series to determine index
+				tradingRecord.enter(0, Decimal.valueOf(mostRecentTrade.rate.longValue()), Decimal.valueOf(mostRecentTrade.amount.longValue()));
+				//trade left open to indicate we still hold a position in this currency
+			}
+
+			//find the most recent sell to record this
 			for (final PoloniexTradeHistory tradeHistory : tradeHistories) {
 
 				//Get the most recent sell trade
 				//TODO, this could have issues, as I think it may be possible that there could end up being multiple sell trades for one initial sell order, if the prices is moving and
 				//it ends up creating multiple trades to fill that one order at different prices, may need to look at ways to address this
 				if (tradeHistory.type.equalsIgnoreCase("sell")) {
-					//entering at 0 index is wrong, but hack for now
 					//TODO fix this later to be more accurate by using time series to determine index
-					tradingRecord.enter(0, Decimal.valueOf(tradeHistory.rate.longValue()), Decimal.valueOf(tradeHistory.amount.longValue()));
-					tradingRecord.exit(0);
+					tradingRecord.enter(1, Decimal.valueOf(tradeHistory.rate.longValue()), Decimal.valueOf(tradeHistory.amount.longValue()));
+					tradingRecord.exit(1);
 					break;
 				}
 			}
