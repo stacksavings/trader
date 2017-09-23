@@ -92,12 +92,16 @@ public class AutomatedTrader {
 
 		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
-
-			//TODO this can get a bit complicated because we will hold positions between runs of this program, for now, it will work for back testing only
-
 			for (String currency : currencyPairList)
 			{
 				if (currencySkipList != null && currencySkipList.contains(currency)) {
+					continue;
+				}
+
+				if (poloniexTraderClient.areOpenPoloniexOrders(currency, null)) {
+					//TODO this logic is very rough, we need to figure a lot more on this as there could be orders
+					//that stay open a long time so we need logic to potentially cancel the order, etc, for now just skip
+					//if it has open poloniex order as we can't do another trade while it's open
 					continue;
 				}
 
@@ -231,7 +235,8 @@ public class AutomatedTrader {
 			if (tradingRecord != null && tradingRecord.getLastEntry() != null) {
 				Decimal exitAmount = tradingRecord.getLastEntry().getAmount();
 
-				boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), exitAmount);
+				boolean exited = exitTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, exitAmount);
+
 				if (exited) {
 					Order exit = tradingRecord.getLastExit();
 					System.out.println("Exited on " + exit.getIndex()
@@ -251,10 +256,7 @@ public class AutomatedTrader {
 			entered = tradingRecord.enter(curIndex, closePrice, numberToBuy);
 		} else {
 
-			//TODO, this actually should do another analysis of the data using exact query from poloniex, because the tick data can be out of date by up to 5 minutes
-			//for now this logic is just a hack to try to test it
-			//increase the buy price slightly, since the tick data isn't necessarily exactly up to date
-			final Decimal buyPriceDecimal = (closePrice.multipliedBy(Decimal.valueOf(.005))).plus(closePrice);
+			final Decimal buyPriceDecimal = closePrice;
 
 			final BigDecimal buyPrice = BigDecimal.valueOf(buyPriceDecimal.toDouble());
 
@@ -268,13 +270,36 @@ public class AutomatedTrader {
 		return entered;
 	}
 
+	private boolean exitTrade(final String currencyPair, final TradingRecord tradingRecord, final Decimal closePrice,
+							   final int curIndex, final Decimal numberToSell) {
+
+		boolean exited = false;
+		if (!liveTradeMode) {
+			exited = tradingRecord.exit(curIndex, closePrice, numberToSell);
+		} else {
+
+			final Decimal sellPriceDecimal = closePrice;
+
+			final BigDecimal sellPrice = BigDecimal.valueOf(sellPriceDecimal.toDouble());
+
+			poloniexTraderClient.sell(currencyPair, sellPrice, BigDecimal.valueOf(numberToSell.toDouble()));
+
+			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
+			exited = tradingRecord.exit(curIndex, closePrice, numberToSell);
+
+		}
+
+		return exited;
+	}
+
 	/**
 	 * When the program is run in trading mode it has to first check the poloniex orders from before and at least update the most recent one
 	 * as a trading record trade so that we know the current status of that currency
 	 * @param tradingRecord
 	 */
 	private void synchTradeAccountRecords(final TradingRecord tradingRecord, final String currency) {
-		//TODO implement logic that checks poloniex orders and creates a trading record trade for at least the most recent order
+
+		poloniexTraderClient.createTradingRecordFromLastSale(currency, tradingRecord);
 	}
 
 	private Decimal determineTradeAmount(final TradingRecord tradingRecord, final Decimal currentPrice) {
@@ -288,13 +313,7 @@ public class AutomatedTrader {
 		if (isFirstTrade) {
 			availableFunds = initialSpendAmtPerCurrency;
 		} else {
-			if (liveTradeMode) {
-				//TODO, this may not be needed, as we should be creating a trade object from the most recent poloniex trade before this
-				//check for the previous sale amount of that currency, as that is how much we should spend on the next trade
-			} else {
-				//simulation, we just take the last exit price x amount
-				availableFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
-			}
+			availableFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
 		}
 
 		final Decimal amount = availableFunds.dividedBy(currentPrice);

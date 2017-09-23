@@ -61,7 +61,7 @@ public class BatchMain {
 
 		final boolean downloadData = false;
 		final boolean runTrader = true;
-		final boolean liveTradeMode = false;
+		final boolean liveTradeMode = true;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
