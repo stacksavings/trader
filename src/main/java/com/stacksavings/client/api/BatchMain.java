@@ -74,18 +74,23 @@ public class BatchMain {
 
 			PoloniexClientApi.getInstance().execute(fromDate, toDate);
 
-			//PoloniexClientApi.getInstance().execute();
 		} else if( liveTradeMode) {
 			PoloniexClientApi.getInstance().execute();
 		}
 
+		try {
+			if (!liveTradeMode && runTrader) {
 
-		if (!liveTradeMode && runTrader) {
-
-			AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList, liveTradeMode);
-		} else if (liveTradeMode) {
-			AutomatedTrader.getInstance().run(null, null, currencySkipList, liveTradeMode);
+				AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList, liveTradeMode);
+			} else if (liveTradeMode) {
+				AutomatedTrader.getInstance().run(null, null, currencySkipList, liveTradeMode);
+			}
+		} catch (final  Exception e) {
+			System.out.println("Exception encountered");
+			e.printStackTrace();
 		}
+
+
 		
 	}
 }

@@ -8,6 +8,7 @@ import com.cf.data.model.poloniex.PoloniexOpenOrder;
 import com.cf.data.model.poloniex.PoloniexOrderResult;
 import com.cf.data.model.poloniex.PoloniexTradeHistory;
 import eu.verdelhan.ta4j.Decimal;
+import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.TradingRecord;
 
 /**
@@ -61,7 +62,7 @@ public class PoloniexTraderClient
 	 * @param currencyPair
 	 * @param buyPrice
 	 */
-	public void buy(final String currencyPair, final BigDecimal buyPrice, final BigDecimal amount)
+	public void buy(final String currencyPair, final BigDecimal buyPrice, final BigDecimal amount, final TimeSeries conversionTimeSeries)
 	{
 		//temporary code
 		final BigDecimal adjustedBuyPrice = buyPrice.add(buyPrice.multiply(BigDecimal.valueOf(0.0025)));
@@ -82,7 +83,7 @@ public class PoloniexTraderClient
 		}
 	}
 
-	public void sell(final String currencyPair, final BigDecimal sellPrice, final BigDecimal amount)
+	public void sell(final String currencyPair, final BigDecimal sellPrice, final BigDecimal amount, final TimeSeries conversionTimeSeries)
 	{
 		//temporary code
 		final BigDecimal adjustedSellPrice = sellPrice.subtract(sellPrice.multiply(BigDecimal.valueOf(0.01)));
@@ -102,6 +103,7 @@ public class PoloniexTraderClient
 			}
 		}
 	}
+
 
 	public boolean areOpenPoloniexOrders (final String currencyPair, final TradingRecord tradingRecord)
 	{

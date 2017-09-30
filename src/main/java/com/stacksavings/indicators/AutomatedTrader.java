@@ -10,7 +10,7 @@ import eu.verdelhan.ta4j.*;
 import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
-import org.joda.time.DateTime;
+import org.jfree.util.StringUtils;
 import java.io.File;
 
 import java.math.BigDecimal;
@@ -31,6 +31,14 @@ public class AutomatedTrader {
 	private PropertiesUtil propertiesUtil;
 	private boolean liveTradeMode;
 	private int numResultsPerCurrency;
+	private TimeSeries conversionTimeSeries;
+
+	private final static String CONVERSION_CURRENCY = "btc_usdt";
+
+	final boolean checkForStopLoss = false;
+
+	/** The loss ratio threshold (e.g. 3 for 3%) */
+	final Decimal stopLossRatio = Decimal.valueOf(2.5);
 
 	private Decimal initialSpendAmtPerCurrency;
 
@@ -65,11 +73,10 @@ public class AutomatedTrader {
 	/**
 	 * calculateROC
 	 */
-	public void run(final String fromDate, final String toDate, final List<String> currencySkipList, final boolean liveTradeMode)
-	{
+	public void run(final String fromDate, final String toDate, final List<String> currencySkipList, final boolean liveTradeMode) throws Exception {
 		this.liveTradeMode = liveTradeMode;
 
-		List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
+		final List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
 
 		//NOTE: This method is being used, at the moment, for initial testing of some concepts, it will need to be refactored to be more
 		//organized later on, as this one method should not be handling all of this logic for long-term purposes
@@ -81,9 +88,6 @@ public class AutomatedTrader {
 
 		final Map<String, List<Decimal>> currencyTotals = new HashMap<String, List<Decimal>>();
 
-		/** The loss ratio threshold (e.g. 3 for 3%) */
-		final Decimal stopLossRatio = Decimal.valueOf(2.5);
-
 		final List<String> currenciesEndingWithLoss = new ArrayList<String>();
 
 		if (liveTradeMode) {
@@ -92,36 +96,34 @@ public class AutomatedTrader {
 
 		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
+
+			conversionTimeSeries = getConversionCurrencySeries(currencyPairList, fromDate, toDate);
+			if (conversionTimeSeries == null) {
+				throw new Exception("Conversion time series came back as null for " + CONVERSION_CURRENCY + ", cannot proceed without this");
+			}
+
 			for (String currency : currencyPairList)
 			{
+				if (skipCurrencyNonTradingReason(currency) || (currencySkipList != null && currencySkipList.contains(currency))) {
+					continue;
+				}
+
 				try {
-					if (currencySkipList != null && currencySkipList.contains(currency)) {
-						continue;
-					}
 
 					if (poloniexTraderClient.areOpenPoloniexOrders(currency, null)) {
-						//TODO this logic is very rough, we need to figure a lot more on this as there could be orders
+						//TODO this logic is very rough, need to figure a lot more on this as there could be orders
 						//that stay open a long time so we need logic to potentially cancel the order, etc, for now just skip
 						//if it has open poloniex order as we can't do another trade while it's open
 						continue;
 					}
 
-					String fileNameCurrencyPair = null;
-					if (liveTradeMode) {
-						fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
-					} else {
-						final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
-						fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
-					}
+					final TimeSeries series = loadTimeSeries(currency, fromDate, toDate);
 
-					final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
-
-					//TODO We should consider pulling the time frame values from a config file
+					//TODO Consider pulling the time frame values from a config file
 					final Strategy strategy = BuySellStrategy.buildStrategyEMA(series, 9, 26);
 
 					final ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 					final Rule stopLossRule = new StopLossRule(closePrice, stopLossRatio);
-
 
 					// Initializing the trading history
 					final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
@@ -131,90 +133,101 @@ public class AutomatedTrader {
 					final Decimal startingFunds = null;
 
 					if (liveTradeMode) {
-
-						synchTradeAccountRecords(tradingRecord, currency);
-
-						//process only the most recent tick as that is the only one that is relevant in real time trading
-						processTick(currency, tradingRecord, series, strategy, stopLossRule, startingFunds, series.getEnd());
-
+						runLiveTrade(tradingRecord, currency, series, strategy, stopLossRule);
 					} else {
-						//backtesting
-						for (int i = 0; i < series.getTickCount(); i++) {
-							processTick(currency, tradingRecord, series, strategy, stopLossRule, startingFunds, i);
-
-						}
-
-						if (startingFunds != null) {
-							Decimal endingFunds = startingFunds;
-							if (tradingRecord.getLastExit() != null) {
-								endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
-							}
-
-							final double totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
-							System.out.println("Total profit for the strategy: " + totalProfit);
-							System.out.println("Total starting funds: " + startingFunds);
-							System.out.println("Total ending funds: " + endingFunds);
-
-							final Decimal totalPercentChange = calculatePercentChange(startingFunds, endingFunds);
-							if (totalPercentChange.isNegative()) {
-								currenciesEndingWithLoss.add(currency);
-							}
-
-							System.out.println("Total % change: " + totalPercentChange);
-
-							currencyTotals.put(currency, Arrays.asList(startingFunds, endingFunds));
-						} else {
-							System.out.println("No trades made");
-						}
+						runBacktest(series, currency, strategy, tradingRecord, startingFunds, currencyTotals, currenciesEndingWithLoss, stopLossRule);
 					}
 				} catch (final Exception e) {
 					System.out.println("Exception encountered for currency " + currency + ", stack trace follows: ");
 					e.printStackTrace();
 				}
-
 			}
 			if (!liveTradeMode) {
 				calculateOverallGainLoss(currencyTotals, currenciesEndingWithLoss);
 			}
-
 		} 
-		else
-		{
+		else {
 			System.out.println("Date missing, unable to process");
-		}
-
-		if (liveTradeMode) {
+		} if (liveTradeMode) {
 			System.out.println("******* END live trading iteration *******");
 		}
 
 	}
 
+	private void runLiveTrade(final  TradingRecord tradingRecord, final String currency, final TimeSeries series, final Strategy strategy, final Rule stopLossRule) {
+		synchTradeAccountRecords(tradingRecord, currency);
+
+		//process only the most recent tick as that is the only one that is relevant in real time trading
+		processTick(currency, tradingRecord, series, strategy, stopLossRule, series.getEnd());
+	}
+
+	private void runBacktest(final TimeSeries series, final String currency, final Strategy strategy, final  TradingRecord tradingRecord, final Decimal startingFunds,
+							 final Map<String, List<Decimal>> currencyTotals, final List<String> currenciesEndingWithLoss, final Rule stopLossRule) {
+		for (int i = 0; i < series.getTickCount(); i++) {
+			processTick(currency, tradingRecord, series, strategy, stopLossRule, i);
+		}
+
+		Decimal endingFunds = startingFunds;
+		if (tradingRecord.getLastExit() != null) {
+			endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
+		}
+
+		final double totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
+		System.out.println("Total profit for the strategy: " + totalProfit);
+		System.out.println("Total starting funds: " + startingFunds);
+		System.out.println("Total ending funds: " + endingFunds);
+
+		final Decimal totalPercentChange = calculatePercentChange(startingFunds, endingFunds);
+		if (totalPercentChange.isNegative()) {
+			currenciesEndingWithLoss.add(currency);
+		}
+
+		System.out.println("Total % change: " + totalPercentChange);
+
+		currencyTotals.put(currency, Arrays.asList(startingFunds, endingFunds));
+
+	}
+
+	/**
+	 * Skip a currency for a reason other than that it is determined to not be optimal to trade. An example is that we are basing buy / sell off of usdt so we can't also trade it. This differs
+	 * from currencies that we skip due to having determined that they may not be optimal to trade from backtesting, for example.
+	 * @param currency
+	 * @return
+	 */
+	private boolean skipCurrencyNonTradingReason(final String currency) {
+		if (StringUtils.startsWithIgnoreCase(currency, CONVERSION_CURRENCY)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Load a time series from a currency, optionally a fromDate and toDate
+	 * @param currency
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 */
+	private TimeSeries loadTimeSeries(final String currency, final String fromDate, final String toDate) {
+		String fileNameCurrencyPair = null;
+		if (liveTradeMode) {
+			fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
+		} else {
+			final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currency);
+			fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
+		}
+
+		final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
+		return series;
+	}
+
 	private void processTick(final String currencyPair, final TradingRecord tradingRecord, final TimeSeries series, final Strategy strategy,
-							 final Rule stopLossRule, final Decimal startingFunds, final int curIndex) {
+							 final Rule stopLossRule, final int curIndex) {
 
 		final Tick tick = series.getTick(curIndex);
 
-		final boolean checkForStopLoss = false;
 		if (checkForStopLoss) {
-			//If stop loss is triggered, take this out of any future trading
-			//This is an experiment to try removing ones that trigger a stop loss, the idea is that we may want to decide not to trade
-			//certain currencies at all, as they may be too volatile for an algorithm
-			if (tradingRecord != null && !tradingRecord.isClosed()) {
-
-				final Decimal lastEntryPrice = tradingRecord.getLastEntry().getPrice();
-				boolean shouldStopLoss = (stopLossRule == null ? false : stopLossRule.isSatisfied(curIndex, tradingRecord));
-				if (shouldStopLoss) {
-					boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), tradingRecord.getLastEntry().getAmount());
-					if (exited) {
-						Order exit = tradingRecord.getLastExit();
-						System.out.println("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
-								calculatePercentChange(lastEntryPrice, exit.getPrice()) + " on index: " + exit.getIndex()
-								+ " (price=" + exit.getPrice().toDouble()
-								+ ", amount=" + exit.getAmount().toDouble() + ")");
-						return;
-					}
-				}
-			}
+			processStopLoss(tradingRecord, curIndex, tick, stopLossRule);
 		}
 
 
@@ -252,6 +265,38 @@ public class AutomatedTrader {
 
 	}
 
+	private void processStopLoss(final TradingRecord tradingRecord, final int curIndex, final Tick tick, final Rule stopLossRule) {
+		//If stop loss is triggered, take this out of any future trading
+		//This is an experiment to try removing ones that trigger a stop loss, the idea is that we may want to decide not to trade
+		//certain currencies at all, as they may be too volatile for an algorithm
+		if (tradingRecord != null && !tradingRecord.isClosed()) {
+
+			final Decimal lastEntryPrice = tradingRecord.getLastEntry().getPrice();
+			boolean shouldStopLoss = (stopLossRule == null ? false : stopLossRule.isSatisfied(curIndex, tradingRecord));
+			if (shouldStopLoss) {
+				boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), tradingRecord.getLastEntry().getAmount());
+				if (exited) {
+					Order exit = tradingRecord.getLastExit();
+					System.out.println("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
+							calculatePercentChange(lastEntryPrice, exit.getPrice()) + " on index: " + exit.getIndex()
+							+ " (price=" + exit.getPrice().toDouble()
+							+ ", amount=" + exit.getAmount().toDouble() + ")");
+					return;
+				}
+			}
+		}
+	}
+
+	private TimeSeries getConversionCurrencySeries(final List<String> currencyPairList, final String fromDate, final String toDate) {
+		TimeSeries series = null;
+		for (final String currency : currencyPairList) {
+			if (currency.equalsIgnoreCase(CONVERSION_CURRENCY)) {
+				series = loadTimeSeries(currency, fromDate, toDate);
+			}
+		}
+		return series;
+	}
+
 	private boolean enterTrade(final String currencyPair, final TradingRecord tradingRecord, final Decimal closePrice,
 							   final int curIndex, final Decimal numberToBuy) {
 
@@ -264,7 +309,7 @@ public class AutomatedTrader {
 
 			final BigDecimal buyPrice = BigDecimal.valueOf(buyPriceDecimal.toDouble());
 
-			poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.valueOf(numberToBuy.toDouble()));
+			poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.valueOf(numberToBuy.toDouble()), conversionTimeSeries);
 
 			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
 			entered = tradingRecord.enter(curIndex, closePrice, numberToBuy);
@@ -286,7 +331,7 @@ public class AutomatedTrader {
 
 			final BigDecimal sellPrice = BigDecimal.valueOf(sellPriceDecimal.toDouble());
 
-			poloniexTraderClient.sell(currencyPair, sellPrice, BigDecimal.valueOf(numberToSell.toDouble()));
+			poloniexTraderClient.sell(currencyPair, sellPrice, BigDecimal.valueOf(numberToSell.toDouble()), conversionTimeSeries);
 
 			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
 			exited = tradingRecord.exit(curIndex, closePrice, numberToSell);
@@ -362,32 +407,4 @@ public class AutomatedTrader {
 
 	}
 
-
-	public static void printTradeHelper(final Trade trade, final String currency, final TimeSeries series) {
-		System.out.println("**** TRADE for " + currency);
-
-		//TODO Not sure if getEndtime() is the right time that we want
-		final DateTime enterTime = series.getTick(trade.getEntry().getIndex()).getEndTime();
-		final DateTime exitTime = series.getTick(trade.getExit().getIndex()).getEndTime();
-
-		final Decimal entryPrice = trade.getEntry().getPrice();
-		final Decimal exitPrice = trade.getExit().getPrice();
-
-		final Decimal amount = trade.getEntry().getAmount();
-
-		final Decimal percentChange = exitPrice.minus(entryPrice).dividedBy(entryPrice).multipliedBy(Decimal.valueOf(100));
-
-		System.out.println();
-
-		System.out.println("Enter: " + entryPrice + " Time: " + enterTime + " Amount: " + amount + " isNew: " + trade.isNew());
-		System.out.println("Exit: " + exitPrice + " Time: " + exitTime);
-		System.out.println("Gain %: " + percentChange);
-
-		System.out.println();
-	}
-	
-	public static void main(String[] args) {
-
-		
-	}
 }
