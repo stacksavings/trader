@@ -3,8 +3,6 @@ package com.stacksavings.client.api;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.stacksavings.indicators.ROCIndicatorCalculate;
-
 public class PoloniexClientApiAll {
 
 	
@@ -18,6 +16,6 @@ public class PoloniexClientApiAll {
     {
     	PoloniexClientApi.getInstance().execute();
     	
-    	ROCIndicatorCalculate.getInstance().calculateROC();
+    	//ROCIndicatorCalculate.getInstance().calculateROC();
     }
 }

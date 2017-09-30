@@ -22,7 +22,7 @@ public class PoloniexApiBuyTest
 		String currencyPair = "BTC_STEEM";
 		BigDecimal buyPrice = BigDecimal.valueOf(0.00028306);
 		
-		PoloniexTraderClient.getInstance().buy(currencyPair, buyPrice, BigDecimal.ONE);
+		//PoloniexTraderClient.getInstance().buy(currencyPair, buyPrice, BigDecimal.ONE);
 		
 	}
 }
