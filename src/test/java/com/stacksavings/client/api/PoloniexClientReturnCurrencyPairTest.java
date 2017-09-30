@@ -20,9 +20,9 @@ public class PoloniexClientReturnCurrencyPairTest {
     
     @Test
     public void returnTicker(){
-    	List<String> result = PoloniexClientApi.getInstance().returnCurrencyPair();
+/*    	List<String> result = PoloniexClientApi.getInstance().returnCurrencyPair();
     	for (String string : result) {
 			System.out.println(string);
-		}
+		}*/
     }
 }

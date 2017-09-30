@@ -13,6 +13,8 @@ import java.util.List;
  */
 public class BatchMain {
 
+	private final static String CONVERSION_CURRENCY = "usdt_btc";
+
 	private static BatchMain instance;
 	
 	public static BatchMain getInstance() 
@@ -52,7 +54,7 @@ public class BatchMain {
 
 		final boolean downloadData = false;
 		final boolean runTrader = true;
-		final boolean liveTradeMode = true;
+		final boolean liveTradeMode = false;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
@@ -63,10 +65,10 @@ public class BatchMain {
 		if (!liveTradeMode && downloadData) {
 			FileCleaner.getInstance().clearDirectory();
 
-			PoloniexClientApi.getInstance().execute(fromDate, toDate);
+			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY);
 
 		} else if( liveTradeMode) {
-			PoloniexClientApi.getInstance().execute();
+			PoloniexClientApi.getInstance().execute(CONVERSION_CURRENCY);
 		}
 
 		try {

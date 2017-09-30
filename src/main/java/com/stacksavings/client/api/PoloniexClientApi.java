@@ -63,7 +63,7 @@ public class PoloniexClientApi {
 	 * Client API - To return a currency pair list
 	 * @return
 	 */
-	public List<String> returnCurrencyPair()
+	public List<String> returnCurrencyPair(final String conversionCurrency)
 	{
 		loggerManager.info("begin returnCurrencyPair");
 		
@@ -85,7 +85,7 @@ public class PoloniexClientApi {
 			Set<String> iterator = jsonObject.keySet();
 			for (String item : iterator) {
 				//Limit to just pairs starting with btc, for now, as this way we are always comparing same baseline currency
-				if (StringUtils.startsWithIgnoreCase(item,"btc")) {
+				if (StringUtils.startsWithIgnoreCase(item,"btc") || StringUtils.equalsIgnoreCase(item, conversionCurrency)) {
 					currencyPair.add(item);
 				}
 			}
@@ -250,23 +250,19 @@ public class PoloniexClientApi {
 	/**
 	 * Call this method every time in cron schedule
 	 */
-	public void generateCSVFile()
+	public void generateCSVFile(final String conversionCurrency)
 	{
-		List<String> currencyList = this.returnCurrencyPair();
+		List<String> currencyList = this.returnCurrencyPair(conversionCurrency);
 		for (String currencyPair : currencyList) {
 			List<ChartData> chartDataList = this.returnChartData(currencyPair);
 			fileManager.writeCSV(currencyPair, chartDataList);
 		}
 		
 	}
-	
-	/**
-	 * 
-	 * @param currencyPair
-	 */
-	public void execute()
+
+	public void execute(final String conversionCurrency)
 	{
-		List<String> currencyList = this.returnCurrencyPair();
+		List<String> currencyList = this.returnCurrencyPair(conversionCurrency);
 		if(currencyList !=null && currencyList.size() > 0)
 		{
 			for (String currencyPair : currencyList) {
@@ -280,17 +276,13 @@ public class PoloniexClientApi {
 		}
 		
 	}
-	
-	/**
-	 * 
-	 * @param currencyPair
-	 */
-	public void execute(String fromDate, String toDate)
+
+	public void execute(String fromDate, String toDate, final String conversionCurrency)
 	{
-		List<String> currencyList = this.returnCurrencyPair();
+		List<String> currencyList = this.returnCurrencyPair(conversionCurrency);
 		if(currencyList !=null && currencyList.size() > 0)
 		{
-			for (String currencyPair : currencyList) 
+			for (String currencyPair : currencyList)
 			{
 				List<ChartData> chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair);
 				fileManager.writeCSV(fromDate, toDate, currencyPair, chartDataList);
@@ -300,13 +292,7 @@ public class PoloniexClientApi {
 		{
 			System.out.println("No hay datos");
 		}
-		
-	}
-	
-	public static void main(String[] args) {
 
-		PoloniexClientApi.getInstance().execute();
-		
 	}
 
 }

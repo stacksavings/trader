@@ -14,7 +14,7 @@ public class PoloniexClientApiAll {
     @Test
     public void generateCSVFile() 
     {
-    	PoloniexClientApi.getInstance().execute();
+    	//PoloniexClientApi.getInstance().execute();
     	
     	//ROCIndicatorCalculate.getInstance().calculateROC();
     }

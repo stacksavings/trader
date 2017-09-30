@@ -24,7 +24,7 @@ public class PoloniexClientApiFromDateToDate {
     	// yyyy-MM-dd HH:mm:ss
     	String toDate = "2017-09-16 22:00:00";
     	
-    	PoloniexClientApi.getInstance().execute(fromDate, toDate);
+    	//PoloniexClientApi.getInstance().execute(fromDate, toDate);
     }
 
 }

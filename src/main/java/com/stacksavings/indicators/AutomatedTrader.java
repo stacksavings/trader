@@ -31,9 +31,11 @@ public class AutomatedTrader {
 	private PropertiesUtil propertiesUtil;
 	private boolean liveTradeMode;
 	private int numResultsPerCurrency;
+
+	private boolean useConversionSeries = true;
 	private TimeSeries conversionTimeSeries;
 
-	private final static String CONVERSION_CURRENCY = "btc_usdt";
+	private final static String CONVERSION_CURRENCY = "usdt_btc";
 
 	final boolean checkForStopLoss = false;
 
@@ -76,7 +78,7 @@ public class AutomatedTrader {
 	public void run(final String fromDate, final String toDate, final List<String> currencySkipList, final boolean liveTradeMode) throws Exception {
 		this.liveTradeMode = liveTradeMode;
 
-		final List<String> currencyPairList = poloniexClientApi.returnCurrencyPair();
+		final List<String> currencyPairList = poloniexClientApi.returnCurrencyPair(CONVERSION_CURRENCY);
 
 		//NOTE: This method is being used, at the moment, for initial testing of some concepts, it will need to be refactored to be more
 		//organized later on, as this one method should not be handling all of this logic for long-term purposes
@@ -117,7 +119,7 @@ public class AutomatedTrader {
 						continue;
 					}
 
-					final TimeSeries series = loadTimeSeries(currency, fromDate, toDate);
+					final TimeSeries series = loadTimeSeries(currency, fromDate, toDate, useConversionSeries);
 
 					//TODO Consider pulling the time frame values from a config file
 					final Strategy strategy = BuySellStrategy.buildStrategyEMA(series, 9, 26);
@@ -208,7 +210,7 @@ public class AutomatedTrader {
 	 * @param toDate
 	 * @return
 	 */
-	private TimeSeries loadTimeSeries(final String currency, final String fromDate, final String toDate) {
+	private TimeSeries loadTimeSeries(final String currency, final String fromDate, final String toDate, final boolean useConversionSeries) {
 		String fileNameCurrencyPair = null;
 		if (liveTradeMode) {
 			fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
@@ -217,7 +219,7 @@ public class AutomatedTrader {
 			fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
 		}
 
-		final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair);
+		final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries);
 		return series;
 	}
 
@@ -325,7 +327,7 @@ public class AutomatedTrader {
 		TimeSeries series = null;
 		for (final String currency : currencyPairList) {
 			if (currency.equalsIgnoreCase(CONVERSION_CURRENCY)) {
-				series = loadTimeSeries(currency, fromDate, toDate);
+				series = loadTimeSeries(currency, fromDate, toDate, false);
 			}
 		}
 		return series;

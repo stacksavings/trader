@@ -18,7 +18,7 @@ public class PoloniexClientApiTest {
     @Test
     public void generateCSVFile() 
     {
-    	PoloniexClientApi.getInstance().generateCSVFile();
+    	//PoloniexClientApi.getInstance().generateCSVFile();
     }
 
 }
