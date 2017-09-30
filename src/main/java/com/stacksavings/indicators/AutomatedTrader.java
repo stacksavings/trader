@@ -230,9 +230,27 @@ public class AutomatedTrader {
 			processStopLoss(tradingRecord, curIndex, tick, stopLossRule);
 		}
 
+		final  boolean enterIndicated = processEnterStrategy(strategy, curIndex, tradingRecord, tick, currencyPair);
 
+		if (!enterIndicated) {
+			processExitStrategy(strategy, curIndex, tradingRecord, tick, currencyPair);
+		}
+
+
+	}
+
+	/**
+	 * Process enter strategy and return true if an enter was indicated
+	 * @param strategy
+	 * @param curIndex
+	 * @param tradingRecord
+	 * @param tick
+	 * @param currencyPair
+	 * @return True if enter indicated, does not necessarily mean the trade succesfully exited
+	 */
+	private boolean processEnterStrategy(final Strategy strategy, final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
 		if (strategy.shouldEnter(curIndex, tradingRecord)) {
-			// Our strategy should enter
+			//Strategy should enter
 			System.out.println("Strategy should ENTER on " + curIndex);
 
 			Decimal numberToBuy = determineTradeAmount(tradingRecord, tick.getClosePrice());
@@ -245,8 +263,23 @@ public class AutomatedTrader {
 						+ " (price=" + entry.getPrice().toDouble()
 						+ ", amount=" + entry.getAmount().toDouble() + ")");
 			}
-		} else if (strategy.shouldExit(curIndex, tradingRecord)) {
-			// Our strategy should exit
+			return true;
+		}
+		return  false;
+	}
+
+	/**
+	 * Process exit strategy and return true if an exit was indicated
+	 * @param strategy
+	 * @param curIndex
+	 * @param tradingRecord
+	 * @param tick
+	 * @param currencyPair
+	 * @return True if exit indicated, does not necessarily mean the trade succesfully exited
+	 */
+	private boolean processExitStrategy(final Strategy strategy, final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
+		if (strategy.shouldExit(curIndex, tradingRecord)) {
+			//Strategy should exit
 			System.out.println("Strategy should EXIT on " + curIndex);
 
 			if (tradingRecord != null && tradingRecord.getLastEntry() != null) {
@@ -261,8 +294,9 @@ public class AutomatedTrader {
 							+ ", amount=" + exit.getAmount().toDouble() + ")");
 				}
 			}
+			return  true;
 		}
-
+		return  false;
 	}
 
 	private void processStopLoss(final TradingRecord tradingRecord, final int curIndex, final Tick tick, final Rule stopLossRule) {
