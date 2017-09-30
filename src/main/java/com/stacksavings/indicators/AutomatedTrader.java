@@ -10,7 +10,6 @@ import eu.verdelhan.ta4j.*;
 import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
-import javafx.beans.DefaultProperty;
 import org.jfree.util.StringUtils;
 import java.io.File;
 
@@ -35,6 +34,8 @@ public class AutomatedTrader {
 
 	private boolean useConversionSeries = true;
 	private TimeSeries conversionTimeSeries;
+
+	private final static Decimal FEE_AMOUNT = Decimal.valueOf(0.25);
 
 	private final static String CONVERSION_CURRENCY = "usdt_btc";
 
@@ -256,6 +257,7 @@ public class AutomatedTrader {
 	 * @return True if enter indicated, does not necessarily mean the trade succesfully exited
 	 */
 	private boolean processEnterStrategy(final Strategy strategy, final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
+		//TODO this has to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
 		if (strategy.shouldEnter(curIndex, tradingRecord)) {
 			//Strategy should enter
 			System.out.println("Strategy should ENTER on " + curIndex);
@@ -285,6 +287,7 @@ public class AutomatedTrader {
 	 * @return True if exit indicated, does not necessarily mean the trade succesfully exited
 	 */
 	private boolean processExitStrategy(final Strategy strategy, final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
+		//TODO this has to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
 		if (strategy.shouldExit(curIndex, tradingRecord)) {
 			//Strategy should exit
 			System.out.println("Strategy should EXIT on " + curIndex);
@@ -306,6 +309,7 @@ public class AutomatedTrader {
 		return  false;
 	}
 
+	//TODO this would need to account for fees if its going to be used, as fees have to be considered in all buying / selling decisions
 	private void processStopLoss(final TradingRecord tradingRecord, final int curIndex, final Tick tick, final Rule stopLossRule) {
 		//If stop loss is triggered, take this out of any future trading
 		//This is an experiment to try removing ones that trigger a stop loss, the idea is that we may want to decide not to trade
@@ -343,7 +347,7 @@ public class AutomatedTrader {
 
 		boolean entered = false;
 		if (!liveTradeMode) {
-			entered = tradingRecord.enter(curIndex, closePrice, numberToBuy);
+			entered = enterTrade(tradingRecord, closePrice, curIndex, numberToBuy);
 		} else {
 
 			final Decimal buyPriceDecimal = closePrice;
@@ -353,7 +357,7 @@ public class AutomatedTrader {
 			poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.valueOf(numberToBuy.toDouble()), conversionTimeSeries);
 
 			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
-			entered = tradingRecord.enter(curIndex, closePrice, numberToBuy);
+			entered = enterTrade(tradingRecord, closePrice, curIndex, numberToBuy);
 
 		}
 
@@ -365,7 +369,7 @@ public class AutomatedTrader {
 
 		boolean exited = false;
 		if (!liveTradeMode) {
-			exited = tradingRecord.exit(curIndex, closePrice, numberToSell);
+			exited = exitTrade(tradingRecord, closePrice, curIndex, numberToSell);
 		} else {
 
 			final Decimal sellPriceDecimal = closePrice;
@@ -375,11 +379,40 @@ public class AutomatedTrader {
 			poloniexTraderClient.sell(currencyPair, sellPrice, BigDecimal.valueOf(numberToSell.toDouble()), conversionTimeSeries);
 
 			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
-			exited = tradingRecord.exit(curIndex, closePrice, numberToSell);
+			exited = exitTrade(tradingRecord, closePrice, curIndex, numberToSell);
 
 		}
 
 		return exited;
+	}
+
+	private boolean enterTrade(final TradingRecord tradingRecord, final Decimal closePrice,
+							   final int curIndex, final Decimal numberToBuy) {
+
+		final Decimal buyPrice = applyBuyFee(closePrice);
+
+		final boolean entered = tradingRecord.enter(curIndex, buyPrice, numberToBuy);
+		return entered;
+
+	}
+
+	private boolean exitTrade(final TradingRecord tradingRecord, final Decimal closePrice,
+							  final int curIndex, final Decimal numberToSell) {
+
+		final Decimal sellPrice = applySellFee(closePrice);
+
+		final boolean exited = tradingRecord.exit(curIndex, sellPrice, numberToSell);
+		return exited;
+	}
+
+	private Decimal applyBuyFee (final Decimal price) {
+		final Decimal buyPrice = (price.multipliedBy(FEE_AMOUNT)).plus(price);
+		return buyPrice;
+	}
+
+	private Decimal applySellFee (final Decimal price) {
+		final Decimal sellPrice = price.minus((price.multipliedBy(FEE_AMOUNT)));
+		return sellPrice;
 	}
 
 	/**

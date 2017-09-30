@@ -3,6 +3,7 @@ package com.stacksavings.client.api;
 import com.stacksavings.indicators.AutomatedTrader;
 import com.stacksavings.utils.FileCleaner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class BatchMain {
 	{
 
 		//Currencies that have been determined to potentially be less likely to be profitable
-		final List<String> currencySkipList = Arrays.asList(
+		List<String> currencySkipList = Arrays.asList(
 				"BTC_BELA",
 				"BTC_XBC",
 				"BTC_GAME",
@@ -52,15 +53,18 @@ public class BatchMain {
 				"BTC_LBC"
 		);
 
+		//skip this for now as it may not be needed
+		currencySkipList = new ArrayList();
+
 		final boolean downloadData = false;
 		final boolean runTrader = true;
 		final boolean liveTradeMode = false;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
-		String fromDate = "2017-07-01 00:00:00";
+		String fromDate = "2017-05-01 00:00:00";
 		// yyyy-MM-dd HH:mm:ss
-		String toDate = "2017-09-19 00:00:00";
+		String toDate = "2017-09-29 00:00:00";
 
 		if (!liveTradeMode && downloadData) {
 			FileCleaner.getInstance().clearDirectory();
