@@ -10,6 +10,7 @@ import eu.verdelhan.ta4j.*;
 import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
+import javafx.beans.DefaultProperty;
 import org.jfree.util.StringUtils;
 import java.io.File;
 
@@ -42,6 +43,8 @@ public class AutomatedTrader {
 	/** The loss ratio threshold (e.g. 3 for 3%) */
 	final Decimal stopLossRatio = Decimal.valueOf(2.5);
 
+	//TODO this is too simplistic, needs to be re-worked
+	@Deprecated
 	private Decimal initialSpendAmtPerCurrency;
 
 	/**
@@ -132,7 +135,10 @@ public class AutomatedTrader {
 					System.out.println("************************************************************");
 					System.out.println("Currency: " + currency);
 
-					final Decimal startingFunds = null;
+					//TODO initialSpendAmtPerCurrency is deprecated
+					//TOOD this needs re-working, as it needs to allocate based on some strategy, for example it could allocate a maximum of 20% of total funds to one currency,
+					//if there are more than 5 total currencies owned, then it would need to sell off part of the owned ones to buy another.
+					final Decimal startingFunds = initialSpendAmtPerCurrency;
 
 					if (liveTradeMode) {
 						runLiveTrade(tradingRecord, currency, series, strategy, stopLossRule);
@@ -140,8 +146,7 @@ public class AutomatedTrader {
 						runBacktest(series, currency, strategy, tradingRecord, startingFunds, currencyTotals, currenciesEndingWithLoss, stopLossRule);
 					}
 				} catch (final Exception e) {
-					System.out.println("Exception encountered for currency " + currency + ", stack trace follows: ");
-					e.printStackTrace();
+					System.out.println("Exception encountered for currency " + currency + ", stack trace follows: " + e.toString());
 				}
 			}
 			if (!liveTradeMode) {
@@ -387,6 +392,7 @@ public class AutomatedTrader {
 		poloniexTraderClient.createTradingRecordFromPoloniexTrade(currency, tradingRecord);
 	}
 
+	//TODO this seems to need to use the starting funds variable, hard-coding this to use 'initialSpendAmtPerCurrency' is confusing and probably not optimal, this variable is deprecated
 	private Decimal determineTradeAmount(final TradingRecord tradingRecord, final Decimal currentPrice) {
 		boolean isFirstTrade = true;
 		if (tradingRecord == null || tradingRecord.getTradeCount() > 0) {
