@@ -14,6 +14,9 @@ import eu.verdelhan.ta4j.trading.rules.StopLossRule;
 import org.jfree.util.StringUtils;
 import java.io.File;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -32,6 +35,8 @@ public class AutomatedTrader {
 	private PropertiesUtil propertiesUtil;
 	private boolean liveTradeMode;
 	private int numResultsPerCurrency;
+
+	private Logger logger;
 
 	private boolean useConversionSeries = true;
 	private TimeSeries conversionTimeSeries;
@@ -69,6 +74,7 @@ public class AutomatedTrader {
 	 */
 	private AutomatedTrader()
 	{
+		logger = LogManager.getLogger("EventLogger");
 		csvTicksLoader = CsvTicksLoader.getInstance();
 		poloniexClientApi = PoloniexClientApi.getInstance();
 		fileManager = FileManager.getInstance();
@@ -99,7 +105,7 @@ public class AutomatedTrader {
 		final List<String> currenciesEndingWithLoss = new ArrayList<String>();
 
 		if (liveTradeMode) {
-			System.out.println("******* BEGIN live trading iteration *******");
+			logger.trace("******* BEGIN live trading iteration *******");
 		}
 
 		if(currencyPairList != null && currencyPairList.size() > 0)
@@ -135,8 +141,8 @@ public class AutomatedTrader {
 
 					// Initializing the trading history
 					final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
-					System.out.println("************************************************************");
-					System.out.println("Currency: " + currency);
+					logger.trace("************************************************************");
+					logger.trace("Currency: " + currency);
 
 					//TODO initialSpendAmtPerCurrency is deprecated
 					//TOOD this needs re-working, as it needs to allocate based on some strategy, for example it could allocate a maximum of 20% of total funds to one currency,
@@ -149,7 +155,7 @@ public class AutomatedTrader {
 						runBacktest(series, currency, strategy, tradingRecord, startingFunds, currencyTotals, currenciesEndingWithLoss, stopLossRule);
 					}
 				} catch (final Exception e) {
-					System.out.println("Exception encountered for currency " + currency + ", stack trace follows: " + e.toString());
+					logger.error("Exception encountered for currency " + currency + ", stack trace follows: " + e.toString());
 				}
 			}
 			if (!liveTradeMode) {
@@ -157,9 +163,9 @@ public class AutomatedTrader {
 			}
 		} 
 		else {
-			System.out.println("Date missing, unable to process");
+			logger.error("Date missing, unable to process");
 		} if (liveTradeMode) {
-			System.out.println("******* END live trading iteration *******");
+			logger.trace("******* END live trading iteration *******");
 		}
 
 	}
@@ -184,16 +190,16 @@ public class AutomatedTrader {
 		}
 
 		final double totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
-		System.out.println("Total profit for the strategy: " + totalProfit);
-		System.out.println("Total starting funds: " + startingFunds);
-		System.out.println("Total ending funds: " + endingFunds);
+		logger.trace("Total profit for the strategy: " + totalProfit);
+		logger.trace("Total starting funds: " + startingFunds);
+		logger.trace("Total ending funds: " + endingFunds);
 
 		final Decimal totalPercentChange = calculatePercentChange(startingFunds, endingFunds);
 		if (totalPercentChange.isNegative()) {
 			currenciesEndingWithLoss.add(currency);
 		}
 
-		System.out.println("Total % change: " + totalPercentChange);
+		logger.trace("Total % change: " + totalPercentChange);
 
 		currencyTotals.put(currency, Arrays.asList(startingFunds, endingFunds));
 
@@ -207,12 +213,12 @@ public class AutomatedTrader {
 	 */
 	private boolean checkIfAboveExperimentalIndicatorThreshold(final TimeSeries series, final int index) {
 		//return true;
-		final int timeFrame = 40;
+		final int timeFrame = 21;
 		final AverageDirectionalMovementIndicator admIndicator = new AverageDirectionalMovementIndicator(series, timeFrame);
 		final Decimal admValue = admIndicator.getValue(index);
-		//System.out.println("----- ADM Value: " + admValue);
+		//logger.trace("----- ADM Value: " + admValue);
 
-		if (admValue.isGreaterThan(Decimal.valueOf(50.0))) {
+		if (admValue.isGreaterThan(Decimal.valueOf(20.0))) {
 			return true;
 		}
 		return false;
@@ -283,8 +289,6 @@ public class AutomatedTrader {
 
 			boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
 			if (aboveExperimentalIndicator) {
-				//Strategy should enter
-				System.out.println("Strategy should ENTER on " + curIndex);
 
 				Decimal numberToBuy = determineTradeAmount(tradingRecord, tick.getClosePrice());
 
@@ -292,7 +296,7 @@ public class AutomatedTrader {
 
 				if (entered) {
 					Order entry = tradingRecord.getLastEntry();
-					System.out.println("Entered on " + entry.getIndex()
+					logger.trace("Entered on " + entry.getIndex()
 							+ " (price=" + entry.getPrice().toDouble()
 							+ ", amount=" + entry.getAmount().toDouble() + ")");
 				}
@@ -314,8 +318,6 @@ public class AutomatedTrader {
 	private boolean processExitStrategy(final Strategy strategy, final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
 		//TODO this has to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
 		if (strategy.shouldExit(curIndex, tradingRecord)) {
-			//Strategy should exit
-			System.out.println("Strategy should EXIT on " + curIndex);
 
 			if (tradingRecord != null && tradingRecord.getLastEntry() != null) {
 				Decimal exitAmount = tradingRecord.getLastEntry().getAmount();
@@ -324,7 +326,7 @@ public class AutomatedTrader {
 
 				if (exited) {
 					Order exit = tradingRecord.getLastExit();
-					System.out.println("Exited on " + exit.getIndex()
+					logger.trace("Exited on " + exit.getIndex()
 							+ " (price=" + exit.getPrice().toDouble()
 							+ ", amount=" + exit.getAmount().toDouble() + ")");
 				}
@@ -347,7 +349,7 @@ public class AutomatedTrader {
 				boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), tradingRecord.getLastEntry().getAmount());
 				if (exited) {
 					Order exit = tradingRecord.getLastExit();
-					System.out.println("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
+					logger.trace("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
 							calculatePercentChange(lastEntryPrice, exit.getPrice()) + " on index: " + exit.getIndex()
 							+ " (price=" + exit.getPrice().toDouble()
 							+ ", amount=" + exit.getAmount().toDouble() + ")");
@@ -486,17 +488,17 @@ public class AutomatedTrader {
 
 		}
 
-		System.out.println();
-		System.out.println();
-		System.out.println("************************************************************");
-		System.out.println();
-		System.out.println("Total start: " + start);
-		System.out.println("Total end: " + end);
-		System.out.println("Total % change: " + calculatePercentChange(start, end));
-		System.out.println("************************************************************");
-		System.out.println("Currencies ending with loss:");
+		logger.trace("\n");
+		logger.trace("\n");
+		logger.trace("************************************************************");
+		logger.trace("\n");
+		logger.trace("Total start: " + start);
+		logger.trace("Total end: " + end);
+		logger.trace("Total % change: " + calculatePercentChange(start, end));
+		logger.trace("************************************************************");
+		logger.trace("Currencies ending with loss:");
 		for (final String currency : currenciesEndingWithLoss) {
-			System.out.println(currency);
+			logger.trace(currency);
 		}
 
 	}

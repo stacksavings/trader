@@ -64,15 +64,9 @@ public class BatchMain {
 		// yyyy-MM-dd HH:mm:ss
 
 		//String fromDate = "2017-08-01 00:00:00";
-		String fromDate = "2017-09-26 00:00:00";
+		String fromDate = "2017-05-01 00:00:00";
 		// yyyy-MM-dd HH:mm:ss
 		String toDate = "2017-09-29 00:00:00";
-
-		//May want to run the backtest with different dates, such as for testing against a smaller subset
-		//String fromDateBacktest = fromDate;
-		String fromDateBacktest = "2017-06-01 00:00:00";;
-		//String toDateBacktest = toDate;
-		String toDateBacktest = toDate;
 
 		if (!liveTradeMode && downloadData) {
 			FileCleaner.getInstance().clearDirectory();
