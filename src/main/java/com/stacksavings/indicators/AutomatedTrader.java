@@ -9,6 +9,7 @@ import com.stacksavings.utils.PropertiesUtil;
 import eu.verdelhan.ta4j.*;
 import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
+import eu.verdelhan.ta4j.indicators.trackers.AverageDirectionalMovementIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
 import org.jfree.util.StringUtils;
 import java.io.File;
@@ -35,7 +36,8 @@ public class AutomatedTrader {
 	private boolean useConversionSeries = true;
 	private TimeSeries conversionTimeSeries;
 
-	private final static Decimal FEE_AMOUNT = Decimal.valueOf(0.25);
+	/** .25% */
+	private final static Decimal FEE_AMOUNT = Decimal.valueOf(0.0025);
 
 	private final static String CONVERSION_CURRENCY = "usdt_btc";
 
@@ -172,6 +174,7 @@ public class AutomatedTrader {
 	private void runBacktest(final TimeSeries series, final String currency, final Strategy strategy, final  TradingRecord tradingRecord, final Decimal startingFunds,
 							 final Map<String, List<Decimal>> currencyTotals, final List<String> currenciesEndingWithLoss, final Rule stopLossRule) {
 		for (int i = 0; i < series.getTickCount(); i++) {
+
 			processTick(currency, tradingRecord, series, strategy, stopLossRule, i);
 		}
 
@@ -194,6 +197,24 @@ public class AutomatedTrader {
 
 		currencyTotals.put(currency, Arrays.asList(startingFunds, endingFunds));
 
+	}
+
+	/**
+	 * Expirementing with indicators that can give some sort of threshold to determine whether a trade is actually worth making, related to the movement direction
+	 * @param series
+	 * @param index
+	 * @return
+	 */
+	private boolean checkIfAboveExperimentalIndicatorThreshold(final TimeSeries series, final int index) {
+		final int timeFrame = 40;
+		final AverageDirectionalMovementIndicator admIndicator = new AverageDirectionalMovementIndicator(series, timeFrame);
+		final Decimal admValue = admIndicator.getValue(index);
+		//System.out.println("----- ADM Value: " + admValue);
+
+		if (admValue.isGreaterThan(Decimal.valueOf(50.0))) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -238,12 +259,11 @@ public class AutomatedTrader {
 			processStopLoss(tradingRecord, curIndex, tick, stopLossRule);
 		}
 
-		final  boolean enterIndicated = processEnterStrategy(strategy, curIndex, tradingRecord, tick, currencyPair);
+		final boolean enterIndicated = processEnterStrategy(strategy, curIndex, tradingRecord, tick, currencyPair)  && checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
 
 		if (!enterIndicated) {
 			processExitStrategy(strategy, curIndex, tradingRecord, tick, currencyPair);
 		}
-
 
 	}
 
