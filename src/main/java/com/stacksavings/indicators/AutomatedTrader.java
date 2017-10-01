@@ -206,6 +206,7 @@ public class AutomatedTrader {
 	 * @return
 	 */
 	private boolean checkIfAboveExperimentalIndicatorThreshold(final TimeSeries series, final int index) {
+		//return true;
 		final int timeFrame = 40;
 		final AverageDirectionalMovementIndicator admIndicator = new AverageDirectionalMovementIndicator(series, timeFrame);
 		final Decimal admValue = admIndicator.getValue(index);
@@ -259,7 +260,7 @@ public class AutomatedTrader {
 			processStopLoss(tradingRecord, curIndex, tick, stopLossRule);
 		}
 
-		final boolean enterIndicated = processEnterStrategy(strategy, curIndex, tradingRecord, tick, currencyPair)  && checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
+		final boolean enterIndicated = processEnterStrategy(strategy, curIndex, tradingRecord, tick, currencyPair, series);
 
 		if (!enterIndicated) {
 			processExitStrategy(strategy, curIndex, tradingRecord, tick, currencyPair);
@@ -276,23 +277,27 @@ public class AutomatedTrader {
 	 * @param currencyPair
 	 * @return True if enter indicated, does not necessarily mean the trade succesfully exited
 	 */
-	private boolean processEnterStrategy(final Strategy strategy, final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
+	private boolean processEnterStrategy(final Strategy strategy, final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair, final TimeSeries series) {
 		//TODO this has to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
 		if (strategy.shouldEnter(curIndex, tradingRecord)) {
-			//Strategy should enter
-			System.out.println("Strategy should ENTER on " + curIndex);
 
-			Decimal numberToBuy = determineTradeAmount(tradingRecord, tick.getClosePrice());
+			boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
+			if (aboveExperimentalIndicator) {
+				//Strategy should enter
+				System.out.println("Strategy should ENTER on " + curIndex);
 
-			boolean entered = enterTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, numberToBuy);
+				Decimal numberToBuy = determineTradeAmount(tradingRecord, tick.getClosePrice());
 
-			if (entered) {
-				Order entry = tradingRecord.getLastEntry();
-				System.out.println("Entered on " + entry.getIndex()
-						+ " (price=" + entry.getPrice().toDouble()
-						+ ", amount=" + entry.getAmount().toDouble() + ")");
+				boolean entered = enterTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, numberToBuy);
+
+				if (entered) {
+					Order entry = tradingRecord.getLastEntry();
+					System.out.println("Entered on " + entry.getIndex()
+							+ " (price=" + entry.getPrice().toDouble()
+							+ ", amount=" + entry.getAmount().toDouble() + ")");
+				}
+				return true;
 			}
-			return true;
 		}
 		return  false;
 	}
