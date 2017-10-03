@@ -2,25 +2,18 @@ package com.stacksavings.main;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.time.Minute;
-import org.jfree.data.time.Second;
-import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
 import com.stacksavings.loaders.CsvTicksLoader;
-import com.stacksavings.strategies.BuySellStrategy;
+import com.stacksavings.strategies.EMAStrategyHolder;
 
 import eu.verdelhan.ta4j.Decimal;
 import eu.verdelhan.ta4j.Indicator;
@@ -28,7 +21,6 @@ import eu.verdelhan.ta4j.Strategy;
 import eu.verdelhan.ta4j.Tick;
 import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.Trade;
-import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 
 /**
  * 
@@ -109,15 +101,15 @@ public class BuySell {
 		TimeSeries series = CsvTicksLoader.getInstance().loadSeries();
 		
 		//2. Load time series
-		Strategy strategy = BuySellStrategy.buildStrategy(series);
+		//Strategy strategy = EMAStrategyHolder.buildStrategy(series);
 		
 		
-		List<Trade> trades = series.run(strategy).getTrades();
-		for (Trade trade : trades) {
+		//List<Trade> trades = series.run(strategy).getTrades();
+		//for (Trade trade : trades) {
 			
 			//System.out.println("Type: "+ trade.getExit().getType()+" Index:"+trade.getExit().getIndex()+" Price:"+trade.getExit().getPrice());
-			System.out.println("Type: "+ trade.getEntry().getType()+" Index:"+trade.getEntry().getIndex()+" Price:"+trade.getEntry().getPrice());
-		}
+		//	System.out.println("Type: "+ trade.getEntry().getType()+" Index:"+trade.getEntry().getIndex()+" Price:"+trade.getEntry().getPrice());
+		//}
 		//3. Graphics
 		
 		

@@ -17,65 +17,17 @@ import eu.verdelhan.ta4j.trading.rules.*;
  * @author jpcol
  *
  */
-public class BuySellStrategy {
+public class EMAStrategyHolder extends StrategyHolder {
 
-	/**
-	 * SMA
-	 * @param series
-	 * @return
-	 */
-	public static Strategy buildStrategy(TimeSeries series) {
-		
-        if (series == null) {
-            throw new IllegalArgumentException("Series cannot be null");
-        }
-        
-        // Getting the close price of the ticks
-        Decimal firstClosePrice = series.getTick(0).getClosePrice();
-        System.out.println("First close price: " + firstClosePrice.toDouble());
-        // Or within an indicator:
-        ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-        // Here is the same close price:
-        System.out.println(firstClosePrice.isEqual(closePrice.getValue(0))); // equal to firstClosePrice
-
-        // Getting the simple moving average (SMA) of the close price over the last 5 ticks
-        SMAIndicator shortSma = new SMAIndicator(closePrice, 5);
-        // Here is the 5-ticks-SMA value at the 42nd index
-        System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(42).toDouble());
-
-        // Getting a longer SMA (e.g. over the 30 last ticks)
-        SMAIndicator longSma = new SMAIndicator(closePrice, 30);
-
-
-        // Ok, now let's building our trading rules!
-
-        // Buying rules
-        // We want to buy:
-        //  - if the 5-ticks SMA crosses over 30-ticks SMA
-        //  - or if the price goes below a defined price (e.g $0.83)
-        Rule buyingRule = new CrossedUpIndicatorRule(shortSma, longSma);
-                //.or(new CrossedDownIndicatorRule(closePrice, Decimal.valueOf("0.819")));
-        
-        // Selling rules
-        // We want to sell:
-        //  - if the 5-ticks SMA crosses under 30-ticks SMA
-        //  - or if if the price looses more than 3%
-        //  - or if the price earns more than 2%
-        Rule sellingRule = new CrossedDownIndicatorRule(shortSma, longSma)
-                .or(new StopLossRule(closePrice, Decimal.valueOf("3")))
-                .or(new StopGainRule(closePrice, Decimal.valueOf("2")));
-
-        return new Strategy(buyingRule, sellingRule);
+	public EMAStrategyHolder(final int shortTimeFrame, final int longTimeFrame) {
+		super(shortTimeFrame, longTimeFrame);
 	}
 
 	/**
 	 * Build Exponential Moving Average strategy
-	 * @param series
-	 * @param shortTimeFrame
-	 * @param longTimeFrame
 	 * @return
 	 */
-	public static Strategy buildStrategyEMA(TimeSeries series, final int shortTimeFrame, final int longTimeFrame) {
+	public Strategy buildStrategy(final TimeSeries series) {
 		 if (series == null) {
 	            throw new IllegalArgumentException("Series cannot be null");
 	        }
@@ -109,6 +61,55 @@ public class BuySellStrategy {
 	        return new Strategy(entryRule, exitRule);
 	}
 
+	//TOOD make this it's own class if it is going to be used
+	/**
+	 * SMA
+	 * @param series
+	 * @return
+	 */
+/*	public static Strategy buildStrategy(final TimeSeries series) {
+
+        if (series == null) {
+            throw new IllegalArgumentException("Series cannot be null");
+        }
+
+        // Getting the close price of the ticks
+        Decimal firstClosePrice = series.getTick(0).getClosePrice();
+        System.out.println("First close price: " + firstClosePrice.toDouble());
+        // Or within an indicator:
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
+        // Here is the same close price:
+        System.out.println(firstClosePrice.isEqual(closePrice.getValue(0))); // equal to firstClosePrice
+
+        // Getting the simple moving average (SMA) of the close price over the last 5 ticks
+        SMAIndicator shortSma = new SMAIndicator(closePrice, 5);
+        // Here is the 5-ticks-SMA value at the 42nd index
+        System.out.println("5-ticks-SMA value at the 42nd index: " + shortSma.getValue(42).toDouble());
+
+        // Getting a longer SMA (e.g. over the 30 last ticks)
+        SMAIndicator longSma = new SMAIndicator(closePrice, 30);
+
+
+        // Ok, now let's building our trading rules!
+
+        // Buying rules
+        // We want to buy:
+        //  - if the 5-ticks SMA crosses over 30-ticks SMA
+        //  - or if the price goes below a defined price (e.g $0.83)
+        Rule buyingRule = new CrossedUpIndicatorRule(shortSma, longSma);
+                //.or(new CrossedDownIndicatorRule(closePrice, Decimal.valueOf("0.819")));
+
+        // Selling rules
+        // We want to sell:
+        //  - if the 5-ticks SMA crosses under 30-ticks SMA
+        //  - or if if the price looses more than 3%
+        //  - or if the price earns more than 2%
+        Rule sellingRule = new CrossedDownIndicatorRule(shortSma, longSma)
+                .or(new StopLossRule(closePrice, Decimal.valueOf("3")))
+                .or(new StopGainRule(closePrice, Decimal.valueOf("2")));
+
+        return new Strategy(buyingRule, sellingRule);
+	}*/
 
 
 }

@@ -71,4 +71,10 @@ Due to poloniex-api-java is not installed in maven repositorie central, we will 
          </dependency>
 ```
 
+```local back testing
+mvn clean install -DskipTests -Denv=local
+
+mvn exec:java -Dexec.mainClass="com.stacksavings.client.api.BackTesterMain"
+```
+
 

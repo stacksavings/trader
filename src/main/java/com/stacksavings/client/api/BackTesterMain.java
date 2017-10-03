@@ -1,7 +1,11 @@
 package com.stacksavings.client.api;
 
+import com.stacksavings.Parameter.Parameters;
 import com.stacksavings.indicators.AutomatedTrader;
+import com.stacksavings.strategies.EMAStrategyHolder;
+import com.stacksavings.strategies.StrategyHolder;
 import com.stacksavings.utils.FileCleaner;
+import eu.verdelhan.ta4j.Decimal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,17 +16,17 @@ import java.util.List;
  * @author jpcol
  *
  */
-public class BatchMain {
+public class BackTesterMain {
 
 	private final static String CONVERSION_CURRENCY = "usdt_btc";
 
-	private static BatchMain instance;
+	private static BackTesterMain instance;
 	
-	public static BatchMain getInstance() 
+	public static BackTesterMain getInstance()
 	{
 	      if(instance == null) 
 	      {
-	         instance = new BatchMain();
+	         instance = new BackTesterMain();
 	      }
 	      
 	      return instance;
@@ -53,12 +57,9 @@ public class BatchMain {
 				"BTC_LBC"
 		);
 
-		//skip this for now as it may not be needed
-		currencySkipList = new ArrayList();
 
 		final boolean downloadData = false;
-		final boolean runTrader = true;
-		final boolean liveTradeMode = false;
+		final boolean runBackTest = true;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
@@ -68,21 +69,36 @@ public class BatchMain {
 		// yyyy-MM-dd HH:mm:ss
 		String toDate = "2017-09-29 00:00:00";
 
-		if (!liveTradeMode && downloadData) {
+
+		Parameters params = new Parameters();
+		params.setLiveTradeMode(false);
+		params.setProcessStopLoss(false);
+		params.setApplyExperimentalIndicator(false);
+		params.setInitialCurrencyAmount(Decimal.valueOf(100));
+		params.setConversionCurrency("usdt_btc");
+		params.setFeeAmount(Decimal.valueOf(.0025));
+		params.setFromDate(fromDate);
+		params.setToDate(toDate);
+		params.setProcessStopLoss(false);
+		params.setUseConversionSeries(true);
+
+		final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
+		params.setStrategyHolder(strategyHolder);
+
+
+		if (downloadData) {
 			FileCleaner.getInstance().clearDirectory();
 
 			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY);
 
-		} else if( liveTradeMode) {
-			PoloniexClientApi.getInstance().execute(CONVERSION_CURRENCY);
 		}
 
-		try {
-			if (!liveTradeMode && runTrader) {
+		final AutomatedTrader trader = new AutomatedTrader(params);
 
-			//	AutomatedTrader.getInstance().run(fromDate, toDate, currencySkipList, liveTradeMode);
-			} else if (liveTradeMode) {
-			//	AutomatedTrader.getInstance().run(null, null, currencySkipList, liveTradeMode);
+		try {
+			if (runBackTest) {
+
+				trader.run();
 			}
 		} catch (final  Exception e) {
 			System.out.println("Exception encountered");
