@@ -4,6 +4,7 @@ import com.stacksavings.Parameter.Parameters;
 import com.stacksavings.client.api.PoloniexClientApi;
 import com.stacksavings.loaders.CsvTicksLoader;
 import com.stacksavings.utils.FileManager;
+import com.stacksavings.utils.LoggerHelper;
 import com.stacksavings.utils.PoloniexTraderClient;
 import com.stacksavings.utils.PropertiesUtil;
 import eu.verdelhan.ta4j.*;
@@ -36,7 +37,7 @@ public class AutomatedTrader {
 
 	private PropertiesUtil propertiesUtil;
 
-	private Logger logger;
+	private LoggerHelper loggerHelper;
 
 	private TimeSeries conversionTimeSeries;
 
@@ -50,7 +51,7 @@ public class AutomatedTrader {
 	public AutomatedTrader(final Parameters parameters)
 	{
 
-		logger = LogManager.getLogger("EventLogger");
+		loggerHelper = new LoggerHelper();
 		csvTicksLoader = CsvTicksLoader.getInstance();
 		poloniexClientApi = PoloniexClientApi.getInstance();
 		fileManager = FileManager.getInstance();
@@ -67,18 +68,8 @@ public class AutomatedTrader {
 
 		final List<String> currencyPairList = poloniexClientApi.returnCurrencyPair(parameters.getConversionCurrency());
 
-		//NOTE: This method is being used, at the moment, for initial testing of some concepts, it will need to be refactored to be more
-		//organized later on, as this one method should not be handling all of this logic for long-term purposes
-
-		//final Decimal startingBTC = Decimal.valueOf(0.025893377);
-
-		//this is only for the first trade for a currency
-		//TODO this needs to be re-worked by implementing an allocation strategy
-		//initialSpendAmtPerCurrency = startingBTC.dividedBy(Decimal.valueOf(currencyPairList.size()));
-
-
 		if (parameters.isLiveTradeMode()) {
-			logger.trace("******* BEGIN live trading iteration *******");
+			//logger.trace("******* BEGIN live trading iteration *******");
 		}
 
 
@@ -90,6 +81,10 @@ public class AutomatedTrader {
 					throw new Exception("Conversion time series came back as null for " + parameters.getConversionCurrency() + ", cannot proceed without this");
 				}
 			}
+
+			//For back-testing only
+			final Map<Integer, Integer> activePositionsAtIndexTracker = new HashMap<Integer, Integer>();
+
 
 			for (String currency : currencyPairList)
 			{
@@ -110,33 +105,30 @@ public class AutomatedTrader {
 
 					parameters.getStrategyHolder().setup(series);
 
-
 					// Initializing the trading history
 					final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
-					logger.trace("************************************************************");
-					logger.trace("Currency: " + currency);
-
-					//TODO initialSpendAmtPerCurrency is deprecated
-					//TOOD this needs re-working, as it needs to allocate based on some strategy, for example it could allocate a maximum of 20% of total funds to one currency,
-					//if there are more than 5 total currencies owned, then it would need to sell off part of the owned ones to buy another.
 
 					if (parameters.isLiveTradeMode()) {
 						runLiveTrade(tradingRecord, currency, series);
 					} else {
-						runBacktest(series, currency, tradingRecord);
+						runBacktest(series, currency, tradingRecord, activePositionsAtIndexTracker);
 					}
 				} catch (final Exception e) {
-					logger.error("Exception encountered for currency " + currency + ", stack trace follows: ", e);
+					loggerHelper.getDefaultLogger().error("Exception encountered for currency " + currency + ", stack trace follows: ", e);
 				}
 			}
 			if (!parameters.isLiveTradeMode()) {
 				calculateOverallGainLoss(currencyTotals, currenciesEndingWithLoss);
+
+				for ( final Map.Entry<Integer, Integer> entry : activePositionsAtIndexTracker.entrySet()){
+					loggerHelper.logTickCombinedSummaryRow(entry.getKey(), entry.getValue());
+				}
 			}
 		} 
 		else {
-			logger.error("Date missing, unable to process");
+			loggerHelper.getDefaultLogger().error("Date missing, unable to process");
 		} if (parameters.isLiveTradeMode()) {
-			logger.trace("******* END live trading iteration *******");
+			//logger.trace("******* END live trading iteration *******");
 		}
 
 	}
@@ -148,10 +140,17 @@ public class AutomatedTrader {
 		processTick(currency, tradingRecord, series, series.getEnd());
 	}
 
-	private void runBacktest(final TimeSeries series, final String currency, final  TradingRecord tradingRecord) {
+	private void runBacktest(final TimeSeries series, final String currency, final  TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker) {
 		for (int i = 0; i < series.getTickCount(); i++) {
 
 			processTick(currency, tradingRecord, series, i);
+
+			if (!tradingRecord.isClosed()) {
+				final Integer curActiveCount = activePositionsAtIndexTracker.get(i);
+				final Integer newActiveCount = curActiveCount != null ? curActiveCount + 1 : 1;
+				activePositionsAtIndexTracker.put(i, newActiveCount);
+			}
+
 		}
 
 		Decimal endingFunds = parameters.getInitialCurrencyAmount();
@@ -160,16 +159,13 @@ public class AutomatedTrader {
 		}
 
 		final double totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
-		logger.trace("Total profit for the strategy: " + totalProfit);
-		logger.trace("Total starting funds: " + parameters.getInitialCurrencyAmount());
-		logger.trace("Total ending funds: " + endingFunds);
 
 		final Decimal totalPercentChange = calculatePercentChange(parameters.getInitialCurrencyAmount(), endingFunds);
 		if (totalPercentChange.isNegative()) {
 			currenciesEndingWithLoss.add(currency);
 		}
 
-		logger.trace("Total % change: " + totalPercentChange);
+		loggerHelper.logCurrencySummaryRow(totalProfit, parameters.getInitialCurrencyAmount(), endingFunds, totalPercentChange);
 
 		currencyTotals.put(currency, Arrays.asList(parameters.getInitialCurrencyAmount(), endingFunds));
 
@@ -185,11 +181,9 @@ public class AutomatedTrader {
 		if (parameters.isApplyExperimentalIndicator()) {
 			return true;
 		}
-		//return true;
 		final int timeFrame = 21;
 		final AverageDirectionalMovementIndicator admIndicator = new AverageDirectionalMovementIndicator(series, timeFrame);
 		final Decimal admValue = admIndicator.getValue(index);
-		//logger.trace("----- ADM Value: " + admValue);
 
 		if (admValue.isGreaterThan(Decimal.valueOf(20.0))) {
 			return true;
@@ -263,9 +257,7 @@ public class AutomatedTrader {
 
 				if (entered) {
 					Order entry = tradingRecord.getLastEntry();
-					logger.trace("Entered on " + entry.getIndex()
-							+ " (price=" + entry.getPrice().toDouble()
-							+ ", amount=" + entry.getAmount().toDouble() + ")");
+					loggerHelper.logTickRow(currencyPair,"ENTER", entry.getIndex(), entry.getPrice().toDouble(), entry.getAmount().toDouble());
 				}
 				return true;
 			}
@@ -292,9 +284,7 @@ public class AutomatedTrader {
 
 				if (exited) {
 					Order exit = tradingRecord.getLastExit();
-					logger.trace("Exited on " + exit.getIndex()
-							+ " (price=" + exit.getPrice().toDouble()
-							+ ", amount=" + exit.getAmount().toDouble() + ")");
+					loggerHelper.logTickRow(currencyPair,"EXIT", exit.getIndex(), exit.getPrice().toDouble(), exit.getAmount().toDouble());
 				}
 			}
 			return  true;
@@ -318,7 +308,7 @@ public class AutomatedTrader {
 				boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), tradingRecord.getLastEntry().getAmount());
 				if (exited) {
 					Order exit = tradingRecord.getLastExit();
-					logger.trace("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
+					loggerHelper.getDefaultLogger().trace("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
 							calculatePercentChange(lastEntryPrice, exit.getPrice()) + " on index: " + exit.getIndex()
 							+ " (price=" + exit.getPrice().toDouble()
 							+ ", amount=" + exit.getAmount().toDouble() + ")");
@@ -457,17 +447,11 @@ public class AutomatedTrader {
 
 		}
 
-		logger.trace("\n");
-		logger.trace("\n");
-		logger.trace("************************************************************");
-		logger.trace("\n");
-		logger.trace("Total start: " + start);
-		logger.trace("Total end: " + end);
-		logger.trace("Total % change: " + calculatePercentChange(start, end));
-		logger.trace("************************************************************");
-		logger.trace("Currencies ending with loss:");
+		loggerHelper.logSummaryRow(start, end, calculatePercentChange(start, end));
+
+		loggerHelper.getDefaultLogger().trace("Currencies ending with loss:");
 		for (final String currency : currenciesEndingWithLoss) {
-			logger.trace(currency);
+			loggerHelper.getDefaultLogger().trace(currency);
 		}
 
 	}
