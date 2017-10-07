@@ -66,6 +66,8 @@ public class AutomatedTrader {
 
 	public void run() throws Exception {
 
+		loggerHelper.logParameters(parameters);
+
 		final List<String> currencyPairList = poloniexClientApi.returnCurrencyPair(parameters.getConversionCurrency());
 
 		if (parameters.isLiveTradeMode()) {

@@ -41,6 +41,8 @@ public abstract class StrategyHolder {
 
     public abstract Strategy buildStrategy(final TimeSeries series);
 
+    public abstract String getStrategyName();
+
 
 
 }

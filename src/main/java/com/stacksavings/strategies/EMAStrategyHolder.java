@@ -61,6 +61,10 @@ public class EMAStrategyHolder extends StrategyHolder {
 	        return new Strategy(entryRule, exitRule);
 	}
 
+	public String getStrategyName() {
+		return "EMAStrategy";
+	}
+
 	//TOOD make this it's own class if it is going to be used
 	/**
 	 * SMA

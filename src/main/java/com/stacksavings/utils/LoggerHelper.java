@@ -1,5 +1,6 @@
 package com.stacksavings.utils;
 
+import com.stacksavings.Parameter.Parameters;
 import eu.verdelhan.ta4j.Order;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +15,9 @@ public class LoggerHelper {
     private Logger loggerCurrencySummary;
     private Logger loggerTick;
     private Logger loggertickCombinedSummary;
+    private Logger loggerParameters;
+
+    private String runIdentifier;
 
     private final String TAB = "    ";
 
@@ -23,10 +27,12 @@ public class LoggerHelper {
         loggerCurrencySummary = LogManager.getLogger("CurrencySummaryRollingLog");
         loggerTick = LogManager.getLogger("TickRollingLog");
         loggertickCombinedSummary = LogManager.getLogger("TickCombinedSummaryRollingLog");
+        loggerParameters = LogManager.getLogger("ParametersRollingLog");
 
+        runIdentifier = generateRandomString();
 
         final Date date = new Date();
-        final String startMessage = "******* Logging started for run: " + date + " " + generateRandomString();
+        final String startMessage = "******* Logging started for run: " + date + " " + runIdentifier;
 
         logger.info(startMessage);
         loggerSummary.info(startMessage);
@@ -67,6 +73,41 @@ public class LoggerHelper {
     public void logCurrencySummaryRow(final Object totalProfit, final Object startFunds, final Object endFunds, final Object percentChange) {
         final String logString = totalProfit + TAB + startFunds + TAB + endFunds + TAB + percentChange;
         loggerCurrencySummary.info(logString);
+    }
+
+    public void logParameters(final Parameters parameters) {
+
+        final boolean usesCurrencySkipList = (parameters.getCurrencySkipList() == null || parameters.getCurrencySkipList().isEmpty()) ? false : true;
+
+        final String headersString = "RUN_ID"
+                + "FROM_DATE" + TAB
+                + "TO_DATE" + TAB
+                + "CONVERSION_CUR" + TAB
+                + "START_CUR_AMT" + TAB
+                + "USE_CONVERSION" + TAB
+                + "PROCESS_STOP_LOSS" + TAB
+                + "FEE_AMT" + TAB
+                + "STOP_LOSS_RATIO" + TAB
+                + "APPLY_EXP_INDICATOR" + TAB
+                + "USE_CUR_SKIP_LIST" + TAB
+                + "STRATEGY";
+
+        final String logString = runIdentifier
+                + parameters.getFromDate() + TAB
+                + parameters.getToDate() + TAB
+                +  parameters.getConversionCurrency() + TAB
+                + parameters.getInitialCurrencyAmount() + TAB
+                + parameters.isUseConversionSeries() + TAB
+                + parameters.shouldProccessStopLoss() + TAB
+                + parameters.getFeeAmount() + TAB
+                + parameters.getStopLossRatio() + TAB
+                + parameters.isApplyExperimentalIndicator() + TAB
+                + usesCurrencySkipList + TAB
+                + parameters.getStrategyHolder().getStrategyName();
+
+        loggerParameters.info(headersString);
+        loggerParameters.info(logString);
+
     }
 
 

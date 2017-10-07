@@ -17,29 +17,36 @@
             </Policies>
         </RollingFile>
         <RollingFile name="SummaryRolling" fileName="logs/summary_rolling.log"
-                     filePattern="logs/output-%d{MM-dd-yyyy}-%i.log">
+                     filePattern="logs/summary_rolling-%d{MM-dd-yyyy}-%i.log">
             <PatternLayout>
                 <Pattern>%m%n</Pattern>
             </PatternLayout>
             <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="100 MB" />
-                <OnStartupTriggeringPolicy/>
             </Policies>
         </RollingFile>
         <RollingFile name="CurrencySummaryRolling" fileName="logs/currency_summary_rolling.log"
-                     filePattern="logs/output-%d{MM-dd-yyyy}-%i.log">
+                     filePattern="logs/currency_summary_rolling-%d{MM-dd-yyyy}-%i.log">
             <PatternLayout>
                 <Pattern>%m%n</Pattern>
             </PatternLayout>
             <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
                 <SizeBasedTriggeringPolicy size="100 MB" />
-                <OnStartupTriggeringPolicy/>
             </Policies>
         </RollingFile>
+        <RollingFile name="ParametersRolling" fileName="logs/parameters_rolling.log"
+                     filePattern="logs/parameters_rolling-%d{MM-dd-yyyy}-%i.log">
+            <PatternLayout>
+                <Pattern>%m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100 MB" />
+            </Policies>
+        </RollingFile>
+
+
         <RollingFile name="TickRolling" fileName="logs/tick_rolling.log"
-                     filePattern="logs/output-%d{MM-dd-yyyy}-%i.log">
+                     filePattern="logs/tick_rolling-%d{MM-dd-yyyy}-%i.log">
             <PatternLayout>
                 <Pattern>%m%n</Pattern>
             </PatternLayout>
@@ -50,7 +57,7 @@
             </Policies>
         </RollingFile>
         <RollingFile name="TickCombinedSummaryRolling" fileName="logs/tick_combined_summary_rolling.log"
-                     filePattern="logs/output-%d{MM-dd-yyyy}-%i.log">
+                     filePattern="logs/tick_combined_summary_rolling-%d{MM-dd-yyyy}-%i.log">
             <PatternLayout>
                 <Pattern>%m%n</Pattern>
             </PatternLayout>
@@ -73,6 +80,9 @@
         </Logger>
         <Logger name="TickCombinedSummaryRollingLog" level="trace" additivity="false">
             <AppenderRef ref="TickCombinedSummaryRolling"/>
+        </Logger>
+        <Logger name="ParametersRollingLog" level="trace" additivity="false">
+            <AppenderRef ref="ParametersRolling"/>
         </Logger>
 
         <Root level="trace">
