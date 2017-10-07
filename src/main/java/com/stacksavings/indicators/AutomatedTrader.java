@@ -180,7 +180,7 @@ public class AutomatedTrader {
 	 * @return
 	 */
 	private boolean checkIfAboveExperimentalIndicatorThreshold(final TimeSeries series, final int index) {
-		if (parameters.isApplyExperimentalIndicator()) {
+		if (!parameters.isApplyExperimentalIndicator()) {
 			return true;
 		}
 		final int timeFrame = 21;
