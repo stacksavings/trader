@@ -79,7 +79,7 @@ public class LoggerHelper {
 
         final boolean usesCurrencySkipList = (parameters.getCurrencySkipList() == null || parameters.getCurrencySkipList().isEmpty()) ? false : true;
 
-        final String headersString = "RUN_ID"
+        final String headersString = "RUN_ID" + TAB
                 + "FROM_DATE" + TAB
                 + "TO_DATE" + TAB
                 + "CONVERSION_CUR" + TAB
@@ -92,7 +92,7 @@ public class LoggerHelper {
                 + "USE_CUR_SKIP_LIST" + TAB
                 + "STRATEGY";
 
-        final String logString = runIdentifier
+        final String logString = runIdentifier + TAB
                 + parameters.getFromDate() + TAB
                 + parameters.getToDate() + TAB
                 +  parameters.getConversionCurrency() + TAB
