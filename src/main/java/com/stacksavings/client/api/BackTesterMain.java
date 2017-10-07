@@ -128,7 +128,7 @@ public class BackTesterMain {
 		params2.setCurrencySkipList(currencySkipList);
 
 		final StrategyHolder strategyHolder2 = new EMAStrategyHolder(9, 26);
-		params2.setStrategyHolder(strategyHolder);
+		params2.setStrategyHolder(strategyHolder2);
 
 		parameters.add(params);
 		parameters.add(params2);
