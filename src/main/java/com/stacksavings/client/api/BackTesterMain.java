@@ -6,6 +6,7 @@ import com.stacksavings.strategies.EMAStrategyHolder;
 import com.stacksavings.strategies.StrategyHolder;
 import com.stacksavings.utils.FileCleaner;
 import eu.verdelhan.ta4j.Decimal;
+import org.omg.Dynamic.Parameter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,29 @@ public class BackTesterMain {
 	      }
 	      
 	      return instance;
-	}	
+	}
+
+	//Currencies that have been determined to potentially be less likely to be profitable
+	final static List<String> currencySkipList = Arrays.asList(
+			"data_feed_long",
+			"BTC_GAME",
+			"BTC_SYS",
+			"BTC_AMP",
+			"BTC_LTC",
+			"BTC_NXC",
+			"BTC_GAS",
+			"BTC_SC",
+			"BTC_VIA",
+			"BTC_XVC",
+			"BTC_PINK",
+			"BTC_ARDR",
+			"BTC_OMG",
+			"BTC_MAID",
+			"BTC_GNT",
+			"BTC_GNO",
+			"BTC_STRAT",
+			"BTC_LBC"
+	);
 
 	/**
 	 * 
@@ -38,25 +61,6 @@ public class BackTesterMain {
 	 */
 	public static void main(String[] args) 
 	{
-
-		//Currencies that have been determined to potentially be less likely to be profitable
-		List<String> currencySkipList = Arrays.asList(
-				"BTC_BELA",
-				"BTC_XBC",
-				"BTC_GAME",
-				"BTC_GAS",
-				"BTC_OMNI",
-				"BTC_NXT",
-				"BTC_SC",
-				"BTC_RIC",
-				"BTC_STEEM",
-				"BTC_ZRX",
-				"BTC_FCT",
-				"BTC_CVC",
-				"BTC_ETC",
-				"BTC_LBC"
-		);
-
 
 		final boolean downloadData = false;
 		final boolean runBackTest = true;
@@ -70,6 +74,28 @@ public class BackTesterMain {
 		String toDate = "2017-09-29 00:00:00";
 
 
+		if (downloadData) {
+			FileCleaner.getInstance().clearDirectory();
+
+			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY);
+
+		}
+
+		if (runBackTest) {
+			final List<Parameters> parameters = getParameters(fromDate, toDate);
+			for (final Parameters params : parameters) {
+				final AutomatedTrader trader = new AutomatedTrader(params);
+				run(trader, true);
+			}
+		}
+
+	}
+
+	private static List<Parameters> getParameters(final String fromDate, final String toDate) {
+
+		final List<Parameters> parameters = new ArrayList<>();
+
+		//run 1
 		Parameters params = new Parameters();
 		params.setLiveTradeMode(false);
 		params.setProcessStopLoss(false);
@@ -81,20 +107,37 @@ public class BackTesterMain {
 		params.setToDate(toDate);
 		params.setProcessStopLoss(false);
 		params.setUseConversionSeries(true);
+		params.setCurrencySkipList(currencySkipList);
 
 		final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
 		params.setStrategyHolder(strategyHolder);
 
 
-		if (downloadData) {
-			FileCleaner.getInstance().clearDirectory();
+		//run 2
+		Parameters params2 = new Parameters();
+		params2.setLiveTradeMode(false);
+		params2.setProcessStopLoss(false);
+		params2.setApplyExperimentalIndicator(true);
+		params2.setInitialCurrencyAmount(Decimal.valueOf(100));
+		params2.setConversionCurrency("usdt_btc");
+		params2.setFeeAmount(Decimal.valueOf(.0025));
+		params2.setFromDate(fromDate);
+		params2.setToDate(toDate);
+		params2.setProcessStopLoss(false);
+		params2.setUseConversionSeries(true);
+		params2.setCurrencySkipList(currencySkipList);
 
-			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY);
+		final StrategyHolder strategyHolder2 = new EMAStrategyHolder(9, 26);
+		params2.setStrategyHolder(strategyHolder);
 
-		}
+		parameters.add(params);
+		parameters.add(params2);
 
-		final AutomatedTrader trader = new AutomatedTrader(params);
+		return parameters;
 
+	}
+
+	private static void run(final AutomatedTrader trader, final boolean runBackTest) {
 		try {
 			if (runBackTest) {
 
@@ -104,8 +147,5 @@ public class BackTesterMain {
 			System.out.println("Exception encountered");
 			e.printStackTrace();
 		}
-
-
-		
 	}
 }
