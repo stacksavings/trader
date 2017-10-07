@@ -167,7 +167,7 @@ public class AutomatedTrader {
 			currenciesEndingWithLoss.add(currency);
 		}
 
-		loggerHelper.logCurrencySummaryRow(totalProfit, parameters.getInitialCurrencyAmount(), endingFunds, totalPercentChange);
+		loggerHelper.logCurrencySummaryRow(currency, totalProfit, parameters.getInitialCurrencyAmount(), endingFunds, totalPercentChange);
 
 		currencyTotals.put(currency, Arrays.asList(parameters.getInitialCurrencyAmount(), endingFunds));
 

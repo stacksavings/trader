@@ -1,7 +1,6 @@
 package com.stacksavings.utils;
 
 import com.stacksavings.Parameter.Parameters;
-import eu.verdelhan.ta4j.Order;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,7 +43,7 @@ public class LoggerHelper {
         //Write Headers
         logTickRow("CURRENCY", "ACTION", "INDEX","PRICE", "AMOUNT");
         logTickCombinedSummaryRow("INDEX", "ACTIVE_POSITIONS");
-        logCurrencySummaryRow("TOTAL_PROFIT", "START_FUNDS", "END_FUNDS", "PERCENT_CHANGE");
+        logCurrencySummaryRow("CURRENCY", "TOTAL_PROFIT", "START_FUNDS", "END_FUNDS", "PERCENT_CHANGE");
         logSummaryRow("TOTAL_START", "TOTAL_END", "PERCENT_CHANGE");
 
     }
@@ -70,8 +69,8 @@ public class LoggerHelper {
         loggerSummary.info(logString);
     }
 
-    public void logCurrencySummaryRow(final Object totalProfit, final Object startFunds, final Object endFunds, final Object percentChange) {
-        final String logString = totalProfit + TAB + startFunds + TAB + endFunds + TAB + percentChange;
+    public void logCurrencySummaryRow(final Object currency, final Object totalProfit, final Object startFunds, final Object endFunds, final Object percentChange) {
+        final String logString = currency + TAB + totalProfit + TAB + startFunds + TAB + endFunds + TAB + percentChange;
         loggerCurrencySummary.info(logString);
     }
 
