@@ -43,6 +43,11 @@ public class AutomatedTrader {
 
 	private List<String> currenciesEndingWithLoss;
 	private Map<String, List<Decimal>> currencyTotals;
+	private Map<String, TimeSeries> timeSeriesHolder;
+
+	private enum IterateCurrencyMode {
+		EXIT, ENTER;
+	}
 
 
 	/**
@@ -61,6 +66,7 @@ public class AutomatedTrader {
 
 		currencyTotals = new HashMap<String, List<Decimal>>();
 		currenciesEndingWithLoss = new ArrayList<String>();
+		timeSeriesHolder = new HashMap<String, TimeSeries>();
 	}
 	
 
@@ -87,38 +93,22 @@ public class AutomatedTrader {
 			//For back-testing only
 			final Map<Integer, Integer> activePositionsAtIndexTracker = new HashMap<Integer, Integer>();
 
-
-			for (String currency : currencyPairList)
-			{
-				if (skipCurrencyNonTradingReason(currency) || (parameters.getCurrencySkipList() != null && parameters.getCurrencySkipList().contains(currency))) {
-					continue;
-				}
-
-				try {
-
-					if (poloniexTraderClient.areOpenPoloniexOrders(currency, null)) {
-						//TODO this logic is very rough, need to figure a lot more on this as there could be orders
-						//that stay open a long time so we need logic to potentially cancel the order, etc, for now just skip
-						//if it has open poloniex order as we can't do another trade while it's open
-						continue;
-					}
-
-					final TimeSeries series = loadTimeSeries(currency, parameters.isUseConversionSeries());
-
-					parameters.getStrategyHolder().setup(series);
-
-					// Initializing the trading history
-					final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
-
-					if (parameters.isLiveTradeMode()) {
-						runLiveTrade(tradingRecord, currency, series);
-					} else {
-						runBacktest(series, currency, tradingRecord, activePositionsAtIndexTracker);
-					}
-				} catch (final Exception e) {
-					loggerHelper.getDefaultLogger().error("Exception encountered for currency " + currency + ", stack trace follows: ", e);
-				}
+			//All the series should be the same length, so just use the conversion series as the iterator
+			int totalIterations = 1;
+			if (!parameters.isLiveTradeMode()) {
+				totalIterations = conversionTimeSeries.getTickCount();
 			}
+
+			for (int i = 0; i < totalIterations; i++) {
+				//Exits must be performed first, as the allocation strategy would then decide which ENTER trades are allowed based on the available funds
+				iterateCurrencies(IterateCurrencyMode.EXIT, currencyPairList, activePositionsAtIndexTracker, i);
+
+				iterateCurrencies(IterateCurrencyMode.ENTER, currencyPairList, activePositionsAtIndexTracker, i);
+			}
+
+			//TODO need to calculate this per currency
+			logBackTestCurrencyTotals();
+
 			if (!parameters.isLiveTradeMode()) {
 				calculateOverallGainLoss(currencyTotals, currenciesEndingWithLoss);
 
@@ -135,27 +125,52 @@ public class AutomatedTrader {
 
 	}
 
-	private void runLiveTrade(final  TradingRecord tradingRecord, final String currency, final TimeSeries series) {
-		synchTradeAccountRecords(tradingRecord, currency);
+	private void iterateCurrencies(final IterateCurrencyMode iterateCurrencyMode, final List<String> currencyPairList, final Map<Integer, Integer> activePositionsAtIndexTracker, final int backTestIter) {
 
-		//process only the most recent tick as that is the only one that is relevant in real time trading
-		processTick(currency, tradingRecord, series, series.getEnd());
-	}
-
-	private void runBacktest(final TimeSeries series, final String currency, final  TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker) {
-		for (int i = 0; i < series.getTickCount(); i++) {
-
-			processTick(currency, tradingRecord, series, i);
-
-			if (!tradingRecord.isClosed()) {
-				final Integer curActiveCount = activePositionsAtIndexTracker.get(i);
-				final Integer newActiveCount = curActiveCount != null ? curActiveCount + 1 : 1;
-				activePositionsAtIndexTracker.put(i, newActiveCount);
+		for (String currency : currencyPairList) {
+			if (skipCurrencyNonTradingReason(currency) || (parameters.getCurrencySkipList() != null && parameters.getCurrencySkipList().contains(currency))) {
+				continue;
 			}
 
-		}
+			try {
 
-		Decimal endingFunds = parameters.getInitialCurrencyAmount();
+				final TimeSeries series = loadTimeSeries(currency, parameters.isUseConversionSeries());
+				parameters.getStrategyHolder().setup(series);
+
+				// Initializing the trading history
+				final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
+
+				Integer iter = backTestIter;
+				if (parameters.isLiveTradeMode()) {
+
+					//TODO this could be cached, for the second iteration through the currency
+					synchTradeAccountRecords(tradingRecord, currency);
+
+					//process only the most recent tick as that is the only one that is relevant in real time trading
+					iter = series.getEnd();
+				}
+
+				if (iterateCurrencyMode == IterateCurrencyMode.EXIT) {
+					processTickExit(currency, tradingRecord, series, iter);
+				} else if (iterateCurrencyMode == IterateCurrencyMode.ENTER) {
+					processTickEnter(currency, tradingRecord, series, iter);
+
+					if (!tradingRecord.isClosed()) {
+						final Integer curActiveCount = activePositionsAtIndexTracker.get(backTestIter);
+						final Integer newActiveCount = curActiveCount != null ? curActiveCount + 1 : 1;
+						activePositionsAtIndexTracker.put(backTestIter, newActiveCount);
+					}
+				}
+
+			} catch (final Exception e) {
+				loggerHelper.getDefaultLogger().error("Exception encountered for currency " + currency + ", stack trace follows: ", e);
+			}
+		}
+	}
+
+	//TODO this needs re-working
+	private void logBackTestCurrencyTotals() {
+/*		Decimal endingFunds = parameters.getInitialCurrencyAmount();
 		if (tradingRecord.getLastExit() != null) {
 			endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
 		}
@@ -169,9 +184,9 @@ public class AutomatedTrader {
 
 		loggerHelper.logCurrencySummaryRow(currency, totalProfit, parameters.getInitialCurrencyAmount(), endingFunds, totalPercentChange);
 
-		currencyTotals.put(currency, Arrays.asList(parameters.getInitialCurrencyAmount(), endingFunds));
-
+		currencyTotals.put(currency, Arrays.asList(parameters.getInitialCurrencyAmount(), endingFunds));*/
 	}
+
 
 	/**
 	 * Expirementing with indicators that can give some sort of threshold to determine whether a trade is actually worth making, related to the movement direction
@@ -213,28 +228,40 @@ public class AutomatedTrader {
 	 */
 	private TimeSeries loadTimeSeries(final String currency, final boolean useConversionSeries) {
 		String fileNameCurrencyPair = null;
+		TimeSeries timeSeries = null;
 		if (parameters.isLiveTradeMode()) {
 			fileNameCurrencyPair = fileManager.getFileNameByCurrency(currency);
 		} else {
+
+			timeSeries = timeSeriesHolder.get(currency);
+			if (timeSeries != null) {
+				return timeSeries;
+			}
 			final File currencyPairFile = fileManager.getFileByName(parameters.getFromDate(), parameters.getToDate(), currency);
 			fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
 		}
 
-		final TimeSeries series = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries);
-		return series;
+		timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries);
+		if (!parameters.isLiveTradeMode()) {
+			timeSeriesHolder.put(currency, timeSeries);
+		}
+		return timeSeries;
 	}
 
-	private void processTick(final String currencyPair, final TradingRecord tradingRecord, final TimeSeries series, final int curIndex) {
+	private void processTickExit(final String currencyPair, final TradingRecord tradingRecord, final TimeSeries series, final int curIndex) {
 
 		final Tick tick = series.getTick(curIndex);
 
 		processStopLoss(tradingRecord, series, curIndex, tick);
+		processExitStrategy(curIndex, tradingRecord, tick, currencyPair);
 
-		final boolean enterIndicated = processEnterStrategy(curIndex, tradingRecord, tick, currencyPair, series);
 
-		if (!enterIndicated) {
-			processExitStrategy(curIndex, tradingRecord, tick, currencyPair);
-		}
+	}
+
+	private void processTickEnter(final String currencyPair, final TradingRecord tradingRecord, final TimeSeries series, final int curIndex) {
+
+		final Tick tick = series.getTick(curIndex);
+		processEnterStrategy(curIndex, tradingRecord, tick, currencyPair, series);
 
 	}
 
