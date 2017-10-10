@@ -17,7 +17,7 @@ public class AllocatorBasic extends Allocator {
     }
 
 
-    public void processTickBuys(final Map<String, Tick> buyTicks, final Map<String, TradingRecord> buyTradingRecords, final int curIndex) {
+    public void processTickBuys(final Map<String, Tick> buyTicks, final Map<String, TradingRecord> buyTradingRecords, final Map<Integer, Integer> activePositionsAtIndexTracker, final int curIndex) {
 
 
         for (final String currencyPair : buyTicks.keySet()) {
@@ -32,6 +32,7 @@ public class AllocatorBasic extends Allocator {
             if (entered) {
                 Order order = tradingRecord.getLastEntry();
                 loggerHelper.logTickRow(currencyPair,"ENTER", order.getIndex(), order.getPrice().toDouble(), order.getAmount().toDouble());
+                AutomatedTrader.updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, curIndex, parameters);
             }
 
         }

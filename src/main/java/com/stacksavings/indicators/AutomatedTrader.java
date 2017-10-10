@@ -95,6 +95,7 @@ public class AutomatedTrader {
 			//For back-testing only
 			final Map<Integer, Integer> activePositionsAtIndexTracker = new HashMap<Integer, Integer>();
 
+			//TODO this isn't actually true, as some seem to have less entries at the end, may need to check into this more
 			//All the series should be the same length, so just use the conversion series as the iterator
 			int totalIterations = 1;
 			if (!parameters.isLiveTradeMode()) {
@@ -163,7 +164,7 @@ public class AutomatedTrader {
 						buyTradingRecords.put(currency, tradingRecord);
 					} else {
 						//This tick / trading record pair is finished so record the active position, if applicable
-						updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, iter);
+						updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, iter, parameters);
 					}
 				}
 
@@ -172,12 +173,12 @@ public class AutomatedTrader {
 			}
 		}
 
-		parameters.getAllocator().processTickBuys( buyTicks, buyTradingRecords, iter);
+		parameters.getAllocator().processTickBuys( buyTicks, buyTradingRecords, activePositionsAtIndexTracker, iter);
 
 
 	}
 
-	private void updateActivePositionsAtIndex(final TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker, final int iter) {
+	public static void updateActivePositionsAtIndex(final TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker, final int iter, final Parameters parameters) {
 		if (!parameters.isLiveTradeMode()) {
 			if (!tradingRecord.isClosed()) {
 				final Integer curActiveCount = activePositionsAtIndexTracker.get(iter);
