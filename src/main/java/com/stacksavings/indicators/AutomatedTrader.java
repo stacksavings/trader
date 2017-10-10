@@ -327,20 +327,21 @@ public class AutomatedTrader {
 	 * @return True if exit indicated, does not necessarily mean the trade succesfully exited
 	 */
 	private boolean processExitStrategy(final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
-		//TODO this has to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
-		if (parameters.getStrategyHolder().shouldExit(curIndex, tradingRecord)) {
+		//TODO this may need to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
 
-			if (tradingRecord != null && tradingRecord.getLastEntry() != null) {
-				Decimal exitAmount = tradingRecord.getLastEntry().getAmount();
+		//only process if there is an open trade
+		if (tradingRecord != null && tradingRecord.getCurrentTrade() != null && !tradingRecord.getCurrentTrade().isClosed()) {
+			if (parameters.getStrategyHolder().shouldExit(curIndex, tradingRecord)) {
 
+				final Decimal exitAmount = tradingRecord.getCurrentTrade().getEntry().getAmount();
 				boolean exited = exitTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, exitAmount);
 
 				if (exited) {
 					Order exit = tradingRecord.getLastExit();
 					loggerHelper.logTickRow(currencyPair,"EXIT", exit.getIndex(), exit.getPrice().toDouble(), exit.getAmount().toDouble());
 				}
+				return  true;
 			}
-			return  true;
 		}
 		return  false;
 	}
