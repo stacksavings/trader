@@ -105,6 +105,7 @@ public class AutomatedTrader {
 				iterateCurrencies(IterateCurrencyMode.EXIT, currencyPairList, activePositionsAtIndexTracker, i);
 
 				iterateCurrencies(IterateCurrencyMode.ENTER, currencyPairList, activePositionsAtIndexTracker, i);
+
 			}
 
 			//TODO need to calculate this per currency
@@ -142,12 +143,6 @@ public class AutomatedTrader {
 				parameters.getStrategyHolder().setup(series);
 
 				final TradingRecord tradingRecord = getTradingRecord(currency);
-
-				if (parameters.isLiveTradeMode()) {
-
-					//TODO this could be cached, for the second iteration through the currency
-					synchTradeAccountRecords(tradingRecord, currency);
-				}
 
 				if (iterateCurrencyMode == IterateCurrencyMode.EXIT) {
 					processTickExit(currency, tradingRecord, series, iter);
@@ -189,6 +184,9 @@ public class AutomatedTrader {
 		TradingRecord tradingRecord = null;
 		if (parameters.isLiveTradeMode()) {
 			tradingRecord = new TradingRecord();
+
+			synchTradeAccountRecords(tradingRecord, currency);
+
 		} else {
 			tradingRecord = backTestTradingRecords.get(currency);
 			if (tradingRecord == null) {

@@ -207,13 +207,7 @@ public class FileManager {
 				
 				for (ChartData chartData : chartDataList) 
 				{
-					if(chartData.getClose() != 0d && chartData.getHigh() != 0d && 
-					   chartData.getLow() != 0d && chartData.getOpen() != 0d && 
-					   chartData.getQuoteVolume() != 0 && chartData.getVolume() != 0d)
-					{
-						out.println(chartData.toString());
-					}
-					
+					out.println(chartData.toString());
 				}
 			} 
 			catch (FileNotFoundException e) 
