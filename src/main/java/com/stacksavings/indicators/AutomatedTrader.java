@@ -8,6 +8,7 @@ import com.stacksavings.utils.LoggerHelper;
 import com.stacksavings.utils.PoloniexTraderClient;
 import com.stacksavings.utils.PropertiesUtil;
 import eu.verdelhan.ta4j.*;
+import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.indicators.trackers.AverageDirectionalMovementIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
@@ -108,8 +109,14 @@ public class AutomatedTrader {
 
 			}
 
-			//TODO need to calculate this per currency
-			logBackTestCurrencyTotals();
+
+			if (!parameters.isLiveTradeMode()) {
+				for (String currency : currencyPairList) {
+					logBackTestCurrencyTotals(currency, backTestTradingRecords.get(currency), timeSeriesHolder.get(currency));
+				}
+			}
+
+
 
 			if (!parameters.isLiveTradeMode()) {
 				calculateOverallGainLoss(currencyTotals, currenciesEndingWithLoss);
@@ -197,14 +204,15 @@ public class AutomatedTrader {
 		return tradingRecord;
 	}
 
-	//TODO this needs re-working
-	private void logBackTestCurrencyTotals() {
-/*		Decimal endingFunds = parameters.getInitialCurrencyAmount();
-		if (tradingRecord.getLastExit() != null) {
-			endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
-		}
+	private void logBackTestCurrencyTotals(final String currency, final TradingRecord tradingRecord, final TimeSeries series) {
+		Decimal endingFunds = parameters.getInitialCurrencyAmount();
 
-		final double totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
+		double totalProfit = 0.00;
+		if (tradingRecord != null && tradingRecord.getLastExit() != null) {
+			endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
+
+			totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
+		}
 
 		final Decimal totalPercentChange = calculatePercentChange(parameters.getInitialCurrencyAmount(), endingFunds);
 		if (totalPercentChange.isNegative()) {
@@ -213,7 +221,7 @@ public class AutomatedTrader {
 
 		loggerHelper.logCurrencySummaryRow(currency, totalProfit, parameters.getInitialCurrencyAmount(), endingFunds, totalPercentChange);
 
-		currencyTotals.put(currency, Arrays.asList(parameters.getInitialCurrencyAmount(), endingFunds));*/
+		currencyTotals.put(currency, Arrays.asList(parameters.getInitialCurrencyAmount(), endingFunds));
 	}
 
 
