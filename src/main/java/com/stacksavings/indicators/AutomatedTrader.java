@@ -8,15 +8,11 @@ import com.stacksavings.utils.LoggerHelper;
 import com.stacksavings.utils.PoloniexTraderClient;
 import com.stacksavings.utils.PropertiesUtil;
 import eu.verdelhan.ta4j.*;
-import eu.verdelhan.ta4j.analysis.criteria.TotalProfitCriterion;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.indicators.trackers.AverageDirectionalMovementIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
 import org.jfree.util.StringUtils;
 import java.io.File;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -40,6 +36,8 @@ public class AutomatedTrader {
 	private LoggerHelper loggerHelper;
 
 	private TimeSeries conversionTimeSeries;
+
+	private Map<String, TradingRecord> backTestTradingRecords;
 
 	private List<String> currenciesEndingWithLoss;
 	private Map<String, List<Decimal>> currencyTotals;
@@ -67,6 +65,9 @@ public class AutomatedTrader {
 		currencyTotals = new HashMap<String, List<Decimal>>();
 		currenciesEndingWithLoss = new ArrayList<String>();
 		timeSeriesHolder = new HashMap<String, TimeSeries>();
+		backTestTradingRecords = new HashMap<String, TradingRecord>();
+
+		parameters.getAllocator().init(loggerHelper);
 	}
 	
 
@@ -125,7 +126,10 @@ public class AutomatedTrader {
 
 	}
 
-	private void iterateCurrencies(final IterateCurrencyMode iterateCurrencyMode, final List<String> currencyPairList, final Map<Integer, Integer> activePositionsAtIndexTracker, final int backTestIter) {
+	private void iterateCurrencies(final IterateCurrencyMode iterateCurrencyMode, final List<String> currencyPairList, final Map<Integer, Integer> activePositionsAtIndexTracker, final int iter) {
+
+		final Map<String, Tick> buyTicks = new HashMap<String, Tick>();
+		final Map<String, TradingRecord> buyTradingRecords = new HashMap<String, TradingRecord>();
 
 		for (String currency : currencyPairList) {
 			if (skipCurrencyNonTradingReason(currency) || (parameters.getCurrencySkipList() != null && parameters.getCurrencySkipList().contains(currency))) {
@@ -137,28 +141,27 @@ public class AutomatedTrader {
 				final TimeSeries series = loadTimeSeries(currency, parameters.isUseConversionSeries());
 				parameters.getStrategyHolder().setup(series);
 
-				// Initializing the trading history
-				final TradingRecord tradingRecord = new TradingRecord(); //BaseTradingRecord();
+				final TradingRecord tradingRecord = getTradingRecord(currency);
 
-				Integer iter = backTestIter;
 				if (parameters.isLiveTradeMode()) {
 
 					//TODO this could be cached, for the second iteration through the currency
 					synchTradeAccountRecords(tradingRecord, currency);
-
-					//process only the most recent tick as that is the only one that is relevant in real time trading
-					iter = series.getEnd();
 				}
 
 				if (iterateCurrencyMode == IterateCurrencyMode.EXIT) {
 					processTickExit(currency, tradingRecord, series, iter);
 				} else if (iterateCurrencyMode == IterateCurrencyMode.ENTER) {
-					processTickEnter(currency, tradingRecord, series, iter);
 
-					if (!tradingRecord.isClosed()) {
-						final Integer curActiveCount = activePositionsAtIndexTracker.get(backTestIter);
-						final Integer newActiveCount = curActiveCount != null ? curActiveCount + 1 : 1;
-						activePositionsAtIndexTracker.put(backTestIter, newActiveCount);
+					final Tick tick = series.getTick(iter);
+					final boolean enterIndicated = processEnterStrategy(iter, tradingRecord, tick, currency, series);
+
+					if (enterIndicated) {
+						buyTicks.put(currency, tick);
+						buyTradingRecords.put(currency, tradingRecord);
+					} else {
+						//This tick / trading record pair is finished so record the active position, if applicable
+						updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, iter);
 					}
 				}
 
@@ -166,6 +169,34 @@ public class AutomatedTrader {
 				loggerHelper.getDefaultLogger().error("Exception encountered for currency " + currency + ", stack trace follows: ", e);
 			}
 		}
+
+		parameters.getAllocator().processTickBuys( buyTicks, buyTradingRecords, iter);
+
+
+	}
+
+	private void updateActivePositionsAtIndex(final TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker, final int iter) {
+		if (!parameters.isLiveTradeMode()) {
+			if (!tradingRecord.isClosed()) {
+				final Integer curActiveCount = activePositionsAtIndexTracker.get(iter);
+				final Integer newActiveCount = curActiveCount != null ? curActiveCount + 1 : 1;
+				activePositionsAtIndexTracker.put(iter, newActiveCount);
+			}
+		}
+	}
+
+	private TradingRecord getTradingRecord(final String currency) {
+		TradingRecord tradingRecord = null;
+		if (parameters.isLiveTradeMode()) {
+			tradingRecord = new TradingRecord();
+		} else {
+			tradingRecord = backTestTradingRecords.get(currency);
+			if (tradingRecord == null) {
+				tradingRecord = new TradingRecord();
+				backTestTradingRecords.put(currency, tradingRecord);
+			}
+		}
+		return tradingRecord;
 	}
 
 	//TODO this needs re-working
@@ -258,15 +289,9 @@ public class AutomatedTrader {
 
 	}
 
-	private void processTickEnter(final String currencyPair, final TradingRecord tradingRecord, final TimeSeries series, final int curIndex) {
-
-		final Tick tick = series.getTick(curIndex);
-		processEnterStrategy(curIndex, tradingRecord, tick, currencyPair, series);
-
-	}
 
 	/**
-	 * Process enter strategy and return true if an enter was indicated
+	 * Process enter strategy and return true if an enter was indicated, does not actually enter the trade
 	 * @param curIndex
 	 * @param tradingRecord
 	 * @param tick
@@ -280,14 +305,6 @@ public class AutomatedTrader {
 			boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
 			if (aboveExperimentalIndicator) {
 
-				Decimal numberToBuy = determineTradeAmount(tradingRecord, tick.getClosePrice());
-
-				boolean entered = enterTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, numberToBuy);
-
-				if (entered) {
-					Order entry = tradingRecord.getLastEntry();
-					loggerHelper.logTickRow(currencyPair,"ENTER", entry.getIndex(), entry.getPrice().toDouble(), entry.getAmount().toDouble());
-				}
 				return true;
 			}
 		}
@@ -295,7 +312,7 @@ public class AutomatedTrader {
 	}
 
 	/**
-	 * Process exit strategy and return true if an exit was indicated
+	 * Process exit strategy and return true if an exit was indicated also processes the actual exit trade
 	 * @param curIndex
 	 * @param tradingRecord
 	 * @param tick
@@ -357,22 +374,23 @@ public class AutomatedTrader {
 		return series;
 	}
 
-	private boolean enterTrade(final String currencyPair, final TradingRecord tradingRecord, final Decimal closePrice,
-							   final int curIndex, final Decimal numberToBuy) {
+	public static boolean enterTrade(final String currencyPair, final TradingRecord tradingRecord, final Decimal closePrice,
+							   final int curIndex, final Decimal numberToBuy, final Parameters parameters) {
 
 		boolean entered = false;
 		if (!parameters.isLiveTradeMode()) {
-			entered = enterTrade(tradingRecord, closePrice, curIndex, numberToBuy);
+			entered = enterTrade(tradingRecord, closePrice, curIndex, numberToBuy, parameters);
 		} else {
 
 			final Decimal buyPriceDecimal = closePrice;
 
 			final BigDecimal buyPrice = BigDecimal.valueOf(buyPriceDecimal.toDouble());
 
-			poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.valueOf(numberToBuy.toDouble()), conversionTimeSeries);
+			//TODO need to refactor this for live trading mode
+			//poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.valueOf(numberToBuy.toDouble()), conversionTimeSeries);
 
 			//TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
-			entered = enterTrade(tradingRecord, closePrice, curIndex, numberToBuy);
+			entered = enterTrade(tradingRecord, closePrice, curIndex, numberToBuy, parameters);
 
 		}
 
@@ -401,10 +419,10 @@ public class AutomatedTrader {
 		return exited;
 	}
 
-	private boolean enterTrade(final TradingRecord tradingRecord, final Decimal closePrice,
-							   final int curIndex, final Decimal numberToBuy) {
+	public static boolean enterTrade(final TradingRecord tradingRecord, final Decimal closePrice,
+							   final int curIndex, final Decimal numberToBuy, final Parameters parameters) {
 
-		final Decimal buyPrice = applyBuyFee(closePrice);
+		final Decimal buyPrice = applyBuyFee(closePrice, parameters);
 
 		final boolean entered = tradingRecord.enter(curIndex, buyPrice, numberToBuy);
 		return entered;
@@ -420,7 +438,7 @@ public class AutomatedTrader {
 		return exited;
 	}
 
-	private Decimal applyBuyFee (final Decimal price) {
+	public static Decimal applyBuyFee (final Decimal price, final Parameters parameters) {
 		final Decimal buyPrice = (price.multipliedBy(parameters.getFeeAmount())).plus(price);
 		return buyPrice;
 	}
@@ -440,26 +458,6 @@ public class AutomatedTrader {
 		poloniexTraderClient.createTradingRecordFromPoloniexTrade(currency, tradingRecord);
 	}
 
-	//TODO this seems to need to use the starting funds variable, hard-coding this to use 'initialSpendAmtPerCurrency' is confusing and probably not optimal, this variable is deprecated
-	private Decimal determineTradeAmount(final TradingRecord tradingRecord, final Decimal currentPrice) {
-		boolean isFirstTrade = true;
-		if (tradingRecord == null || tradingRecord.getTradeCount() > 0) {
-			isFirstTrade = false;
-		}
-
-		Decimal availableFunds = Decimal.ZERO;
-
-		if (isFirstTrade) {
-			availableFunds = parameters.getInitialCurrencyAmount();
-		} else {
-			availableFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
-		}
-
-		final Decimal amount = availableFunds.dividedBy(currentPrice);
-
-		return amount;
-
-	}
 
 	private void calculateOverallGainLoss(final Map<String, List<Decimal>> currencyTotals, final List<String> currenciesEndingWithLoss) {
 

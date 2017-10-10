@@ -1,6 +1,8 @@
 package com.stacksavings.client.api;
 
 import com.stacksavings.Parameter.Parameters;
+import com.stacksavings.allocation.Allocator;
+import com.stacksavings.allocation.AllocatorBasic;
 import com.stacksavings.indicators.AutomatedTrader;
 import com.stacksavings.strategies.EMAStrategyHolder;
 import com.stacksavings.strategies.StrategyHolder;
@@ -112,6 +114,9 @@ public class BackTesterMain {
 		final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
 		params.setStrategyHolder(strategyHolder);
 
+		final Allocator allocator = new AllocatorBasic(params);
+		params.setAllocator(allocator);
+
 
 		//run 2
 		Parameters params2 = new Parameters();
@@ -129,6 +134,9 @@ public class BackTesterMain {
 
 		final StrategyHolder strategyHolder2 = new EMAStrategyHolder(9, 26);
 		params2.setStrategyHolder(strategyHolder2);
+
+		final Allocator allocator2 = new AllocatorBasic(params2);
+		params2.setAllocator(allocator2);
 
 		parameters.add(params);
 		parameters.add(params2);

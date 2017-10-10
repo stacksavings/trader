@@ -1,5 +1,6 @@
 package com.stacksavings.Parameter;
 
+import com.stacksavings.allocation.Allocator;
 import com.stacksavings.strategies.StrategyHolder;
 import eu.verdelhan.ta4j.Decimal;
 
@@ -30,6 +31,8 @@ public class Parameters {
     private boolean useConversionSeries;
 
     private boolean applyExperimentalIndicator;
+
+    private Allocator allocator;
 
     public String getFromDate() {
         return fromDate;
@@ -125,5 +128,13 @@ public class Parameters {
 
     public void setApplyExperimentalIndicator(boolean applyExperimentalIndicator) {
         this.applyExperimentalIndicator = applyExperimentalIndicator;
+    }
+
+    public Allocator getAllocator() {
+        return allocator;
+    }
+
+    public void setAllocator(Allocator allocator) {
+        this.allocator = allocator;
     }
 }
