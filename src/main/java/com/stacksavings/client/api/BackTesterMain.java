@@ -35,6 +35,44 @@ public class BackTesterMain {
 	      return instance;
 	}
 
+	final static List<String> currencyIncludeList = Arrays.asList(
+			"BTC_ETH",
+			"BTC_XRP",
+			"BTC_STR",
+			"BTC_BCH",
+			"BTC_LTC",
+			"BTC_ETH",
+			"BTC_DASH",
+			"BTC_OMG",
+			"BTC_XMR",
+			"BTC_ZEC",
+			"BTC_BTS",
+			"BTC_ETC",
+			"BTC_SC",
+			"BTC_DGB",
+			"BTC_LSK",
+			"BTC_XEM",
+			"BTC_FCT",
+			"BTC_STRAT",
+			"BTC_MAID",
+			"BTC_ZRX",
+			"BTC_VTC",
+			"BTC_DOGE",
+			"BTC_NXT",
+			"BTC_BCN",
+			"BTC_GAS",
+			"BTC_GTC",
+			"BTC_XMR",
+			"BTC_OMG",
+			"BTC_CVC",
+			"BTC_DCR",
+			"BTC_SYS",
+			"BTC_VIA",
+			"BTC_NAV",
+			"BTC_ARDR",
+			"USDT_BTC"
+	);
+
 	//Currencies that have been determined to potentially be less likely to be profitable
 	final static List<String> currencySkipList = Arrays.asList(
 			"data_feed_long",
@@ -54,7 +92,12 @@ public class BackTesterMain {
 			"BTC_GNT",
 			"BTC_GNO",
 			"BTC_STRAT",
-			"BTC_LBC"
+			"BTC_LBC",
+
+			//new currencies
+			"BTC_BCH",
+			"BTC_ZRX",
+			"BTC_CVC"
 	);
 
 	/**
@@ -64,17 +107,18 @@ public class BackTesterMain {
 	public static void main(String[] args) 
 	{
 
-		final boolean downloadData = false;
+		final boolean downloadData = true;
 		final boolean runBackTest = true;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
 
 		//String fromDate = "2017-08-01 00:00:00";
-		String fromDate = "2017-05-01 00:00:00";
+		String fromDate = "2017-09-29 00:00:00";
 		// yyyy-MM-dd HH:mm:ss
-		String toDate = "2017-09-29 00:00:00";
+		String toDate = "2017-09-30 00:00:00";
 
+		final List<Parameters> parameters = getParameters(fromDate, toDate);
 
 		if (downloadData) {
 			FileCleaner.getInstance().clearDirectory();
@@ -84,7 +128,7 @@ public class BackTesterMain {
 		}
 
 		if (runBackTest) {
-			final List<Parameters> parameters = getParameters(fromDate, toDate);
+
 			for (final Parameters params : parameters) {
 				final AutomatedTrader trader = new AutomatedTrader(params);
 				run(trader, true);
@@ -93,53 +137,47 @@ public class BackTesterMain {
 
 	}
 
-	private static List<Parameters> getParameters(final String fromDate, final String toDate) {
-
-		final List<Parameters> parameters = new ArrayList<>();
-
-		//run 1
+	private static Parameters getDefaultParameters1(final String fromDate, final String toDate, final StrategyHolder strategyHolder) {
 		Parameters params = new Parameters();
 		params.setLiveTradeMode(false);
 		params.setProcessStopLoss(false);
+		//if it is 0.97 this would be a 3% stop loss, for example
+		params.setStopLossRatio(Decimal.valueOf(0.97));
 		params.setApplyExperimentalIndicator(false);
 		params.setInitialCurrencyAmount(Decimal.valueOf(100));
 		params.setConversionCurrency("usdt_btc");
 		params.setFeeAmount(Decimal.valueOf(.0025));
 		params.setFromDate(fromDate);
 		params.setToDate(toDate);
-		params.setProcessStopLoss(false);
 		params.setUseConversionSeries(true);
+		params.setCurrencyIncludeList(currencyIncludeList);
 		params.setCurrencySkipList(currencySkipList);
-
-		final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
 		params.setStrategyHolder(strategyHolder);
-
-		final Allocator allocator = new AllocatorBasic(params);
+		Allocator allocator = new AllocatorBasic(params);
 		params.setAllocator(allocator);
 
+		return params;
+	}
 
-		//run 2
-		Parameters params2 = new Parameters();
-		params2.setLiveTradeMode(false);
-		params2.setProcessStopLoss(false);
-		params2.setApplyExperimentalIndicator(true);
-		params2.setInitialCurrencyAmount(Decimal.valueOf(100));
-		params2.setConversionCurrency("usdt_btc");
-		params2.setFeeAmount(Decimal.valueOf(.0025));
-		params2.setFromDate(fromDate);
-		params2.setToDate(toDate);
-		params2.setProcessStopLoss(false);
-		params2.setUseConversionSeries(true);
-		params2.setCurrencySkipList(currencySkipList);
+	private static List<Parameters> getParameters(final String fromDate, final String toDate) {
 
-		final StrategyHolder strategyHolder2 = new EMAStrategyHolder(9, 26);
-		params2.setStrategyHolder(strategyHolder2);
+		final List<Parameters> parameters = new ArrayList<>();
 
-		final Allocator allocator2 = new AllocatorBasic(params2);
-		params2.setAllocator(allocator2);
 
+		final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
+
+		Parameters params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		parameters.add(params);
-		parameters.add(params2);
+
+		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
+		params.setCurrencyIncludeList(null);
+		parameters.add(params);
+
+		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
+		params.setCurrencyIncludeList(null);
+		params.setCurrencySkipList(null);
+		parameters.add(params);
+
 
 		return parameters;
 

@@ -23,7 +23,7 @@ public abstract class Allocator {
     }
 
 
-    public abstract void processTickBuys(final Map<String, Tick> buyTicks, final Map<String, TradingRecord> buyTradingRecords, final int curIndex);
+    public abstract void processTickBuys(final Map<String, Tick> buyTicks, final Map<String, TradingRecord> buyTradingRecords, final Map<Integer, Integer> activePositionsAtIndexTracker, final int curIndex);
 
     protected abstract Decimal determineTradeAmount(final TradingRecord tradingRecord, final Decimal currentPrice);
 

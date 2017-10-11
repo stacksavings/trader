@@ -71,7 +71,7 @@ public class BatchMain {
 		if (!liveTradeMode && downloadData) {
 			FileCleaner.getInstance().clearDirectory();
 
-			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY);
+			//PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY);
 
 		} else if( liveTradeMode) {
 			PoloniexClientApi.getInstance().execute(CONVERSION_CURRENCY);

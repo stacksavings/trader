@@ -32,7 +32,7 @@ public class AllocatorBasic extends Allocator {
             if (entered) {
                 Order order = tradingRecord.getLastEntry();
                 loggerHelper.logTickRow(currencyPair,"ENTER", order.getIndex(), order.getPrice().toDouble(), order.getAmount().toDouble());
-                AutomatedTrader.updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, curIndex, parameters);
+                //AutomatedTrader.updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, curIndex, parameters);
             }
 
         }

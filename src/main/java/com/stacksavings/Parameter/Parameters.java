@@ -16,6 +16,8 @@ public class Parameters {
 
     private boolean liveTradeMode;
 
+    private List<String> currencyIncludeList;
+
     private List<String> currencySkipList;
 
     private boolean processStopLoss;
@@ -136,5 +138,13 @@ public class Parameters {
 
     public void setAllocator(Allocator allocator) {
         this.allocator = allocator;
+    }
+
+    public List<String> getCurrencyIncludeList() {
+        return currencyIncludeList;
+    }
+
+    public void setCurrencyIncludeList(List<String> currencyIncludeList) {
+        this.currencyIncludeList = currencyIncludeList;
     }
 }

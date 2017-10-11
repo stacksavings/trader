@@ -70,13 +70,28 @@ public class AutomatedTrader {
 
 		parameters.getAllocator().init(loggerHelper);
 	}
+
+	private List<String> filterCurrencyList(List<String> currencyPairListTmp ) {
+		final List<String> currencyPairList = new ArrayList<String>();
+		for (final String currencyPair : currencyPairListTmp) {
+			if ( (parameters.getCurrencySkipList() != null && parameters.getCurrencySkipList().contains(currencyPair))
+					|| (parameters.getCurrencyIncludeList() != null && !parameters.getCurrencyIncludeList().contains(currencyPair))
+					) {
+				continue;
+			}
+			currencyPairList.add(currencyPair);
+		}
+		return  currencyPairList;
+	}
 	
 
 	public void run() throws Exception {
 
 		loggerHelper.logParameters(parameters);
 
-		final List<String> currencyPairList = poloniexClientApi.returnCurrencyPair(parameters.getConversionCurrency());
+		final List<String> currencyPairListTmp = poloniexClientApi.returnCurrencyPair(parameters.getConversionCurrency());
+
+		final List<String> currencyPairList = filterCurrencyList(currencyPairListTmp);
 
 		if (parameters.isLiveTradeMode()) {
 			//logger.trace("******* BEGIN live trading iteration *******");
@@ -112,9 +127,15 @@ public class AutomatedTrader {
 
 
 			if (!parameters.isLiveTradeMode()) {
+				double totalProfit = 0.00;
+
+				final Decimal startingAmount = parameters.getInitialCurrencyAmount().multipliedBy(Decimal.valueOf(currencyPairList.size()));
+
 				for (String currency : currencyPairList) {
-					logBackTestCurrencyTotals(currency, backTestTradingRecords.get(currency), timeSeriesHolder.get(currency));
+					totalProfit = totalProfit + logBackTestCurrencyTotals(currency, backTestTradingRecords.get(currency), timeSeriesHolder.get(currency));
 				}
+
+				final Decimal totalPercentGain = calculatePercentChange(startingAmount, startingAmount.plus(Decimal.valueOf(totalProfit)));
 			}
 
 
@@ -122,9 +143,10 @@ public class AutomatedTrader {
 			if (!parameters.isLiveTradeMode()) {
 				calculateOverallGainLoss(currencyTotals, currenciesEndingWithLoss);
 
-				for ( final Map.Entry<Integer, Integer> entry : activePositionsAtIndexTracker.entrySet()){
+				//TODO this has to be refactored as it was causing a large performance decrease
+/*				for ( final Map.Entry<Integer, Integer> entry : activePositionsAtIndexTracker.entrySet()){
 					loggerHelper.logTickCombinedSummaryRow(entry.getKey(), entry.getValue());
-				}
+				}*/
 			}
 		} 
 		else {
@@ -141,7 +163,7 @@ public class AutomatedTrader {
 		final Map<String, TradingRecord> buyTradingRecords = new HashMap<String, TradingRecord>();
 
 		for (String currency : currencyPairList) {
-			if (skipCurrencyNonTradingReason(currency) || (parameters.getCurrencySkipList() != null && parameters.getCurrencySkipList().contains(currency))) {
+			if (skipCurrencyNonTradingReason(currency)) {
 				continue;
 			}
 
@@ -179,13 +201,13 @@ public class AutomatedTrader {
 	}
 
 	public static void updateActivePositionsAtIndex(final TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker, final int iter, final Parameters parameters) {
-		if (!parameters.isLiveTradeMode()) {
+/*		if (!parameters.isLiveTradeMode()) {
 			if (!tradingRecord.isClosed()) {
 				final Integer curActiveCount = activePositionsAtIndexTracker.get(iter);
 				final Integer newActiveCount = curActiveCount != null ? curActiveCount + 1 : 1;
 				activePositionsAtIndexTracker.put(iter, newActiveCount);
 			}
-		}
+		}*/
 	}
 
 	private TradingRecord getTradingRecord(final String currency) {
@@ -205,24 +227,26 @@ public class AutomatedTrader {
 		return tradingRecord;
 	}
 
-	private void logBackTestCurrencyTotals(final String currency, final TradingRecord tradingRecord, final TimeSeries series) {
+	//TODO this will be affected by the allocation, may need to be re-worked
+	private double logBackTestCurrencyTotals(final String currency, final TradingRecord tradingRecord, final TimeSeries series) {
 		Decimal endingFunds = parameters.getInitialCurrencyAmount();
 
-		double totalProfit = 0.00;
+		Decimal totalProfit = Decimal.ZERO;
 		if (tradingRecord != null && tradingRecord.getLastExit() != null) {
 			endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
-
-			totalProfit = new TotalProfitCriterion().calculate(series, tradingRecord);
 		}
 
+		totalProfit = endingFunds.minus(parameters.getInitialCurrencyAmount());
 		final Decimal totalPercentChange = calculatePercentChange(parameters.getInitialCurrencyAmount(), endingFunds);
 		if (totalPercentChange.isNegative()) {
 			currenciesEndingWithLoss.add(currency);
 		}
 
-		loggerHelper.logCurrencySummaryRow(currency, totalProfit, parameters.getInitialCurrencyAmount(), endingFunds, totalPercentChange);
+		loggerHelper.logCurrencySummaryRow(currency, totalProfit.toDouble(), parameters.getInitialCurrencyAmount(), endingFunds, totalPercentChange);
 
 		currencyTotals.put(currency, Arrays.asList(parameters.getInitialCurrencyAmount(), endingFunds));
+
+		return totalProfit.toDouble();
 	}
 
 
@@ -307,12 +331,15 @@ public class AutomatedTrader {
 	 */
 	private boolean processEnterStrategy(final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair, final TimeSeries series) {
 		//TODO this has to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
-		if (parameters.getStrategyHolder().shouldEnter(curIndex, tradingRecord)) {
 
-			boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
-			if (aboveExperimentalIndicator) {
+		//only process if there is not already an open trade
+		if (tradingRecord != null && tradingRecord.isClosed()) {
+			if (parameters.getStrategyHolder().shouldEnter(curIndex, tradingRecord)) {
 
-				return true;
+				boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
+				if (aboveExperimentalIndicator) {
+					return true;
+				}
 			}
 		}
 		return  false;
@@ -330,7 +357,7 @@ public class AutomatedTrader {
 		//TODO this may need to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
 
 		//only process if there is an open trade
-		if (tradingRecord != null && tradingRecord.getCurrentTrade() != null && !tradingRecord.getCurrentTrade().isClosed()) {
+		if (tradingRecord != null && !tradingRecord.isClosed()) {
 			if (parameters.getStrategyHolder().shouldExit(curIndex, tradingRecord)) {
 
 				final Decimal exitAmount = tradingRecord.getCurrentTrade().getEntry().getAmount();
