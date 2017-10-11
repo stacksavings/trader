@@ -266,8 +266,22 @@ public class PoloniexClientApi {
 		if(currencyList !=null && currencyList.size() > 0)
 		{
 			for (String currencyPair : currencyList) {
-				List<ChartData> chartDataList = this.returnChartData(currencyPair);
+
+				List<ChartData> chartDataList = null;
+				int i = 0;
+				while (i < 4) {
+					chartDataList = this.returnChartData(currencyPair);
+					if (chartDataList != null) {
+						break;
+					}
+					System.out.println("retrying for currency pair " + conversionCurrency + " as last attempt failed");
+					i++;
+				}
+
+
 				fileManager.writeCSV(currencyPair, chartDataList);
+
+				sleep();
 			}
 		}
 		else
@@ -284,8 +298,22 @@ public class PoloniexClientApi {
 		{
 			for (String currencyPair : currencyList)
 			{
-				List<ChartData> chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair);
+
+
+				List<ChartData> chartDataList = null;
+				int i = 0;
+				while (i < 4) {
+					chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair);
+					if (chartDataList != null) {
+						break;
+					}
+					System.out.println("retrying for currency pair " + conversionCurrency + " as last attempt failed");
+					i++;
+				}
+
 				fileManager.writeCSV(fromDate, toDate, currencyPair, chartDataList);
+
+				sleep();
 			}
 		}
 		else
@@ -293,6 +321,14 @@ public class PoloniexClientApi {
 			System.out.println("No hay datos");
 		}
 
+	}
+
+	private void sleep() {
+		try {
+			Thread.sleep(500);
+		} catch (final Exception e) {
+
+		}
 	}
 
 }
