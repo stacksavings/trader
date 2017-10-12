@@ -114,7 +114,7 @@ public class BackTesterMain {
 		// yyyy-MM-dd HH:mm:ss
 
 		//String fromDate = "2017-08-01 00:00:00";
-		String fromDate = "2017-09-29 00:00:00";
+		String fromDate = "2017-09-15 00:00:00";
 		// yyyy-MM-dd HH:mm:ss
 		String toDate = "2017-09-30 00:00:00";
 

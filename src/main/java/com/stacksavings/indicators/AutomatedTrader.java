@@ -68,7 +68,6 @@ public class AutomatedTrader {
 		timeSeriesHolder = new HashMap<String, TimeSeries>();
 		backTestTradingRecords = new HashMap<String, TradingRecord>();
 
-		parameters.getAllocator().init(loggerHelper);
 	}
 
 	private List<String> filterCurrencyList(List<String> currencyPairListTmp ) {
@@ -106,6 +105,8 @@ public class AutomatedTrader {
 					throw new Exception("Conversion time series came back as null for " + parameters.getConversionCurrency() + ", cannot proceed without this");
 				}
 			}
+
+			parameters.getAllocator().init(loggerHelper, conversionTimeSeries, currencyPairList);
 
 			//For back-testing only
 			final Map<Integer, Integer> activePositionsAtIndexTracker = new HashMap<Integer, Integer>();
@@ -162,6 +163,8 @@ public class AutomatedTrader {
 		final Map<String, Tick> buyTicks = new HashMap<String, Tick>();
 		final Map<String, TradingRecord> buyTradingRecords = new HashMap<String, TradingRecord>();
 
+		final List <Trade> sales = new ArrayList<Trade>();
+
 		for (String currency : currencyPairList) {
 			if (skipCurrencyNonTradingReason(currency)) {
 				continue;
@@ -175,7 +178,7 @@ public class AutomatedTrader {
 				final TradingRecord tradingRecord = getTradingRecord(currency);
 
 				if (iterateCurrencyMode == IterateCurrencyMode.EXIT) {
-					processTickExit(currency, tradingRecord, series, iter);
+					processTickExit(currency, tradingRecord, series, iter, sales);
 				} else if (iterateCurrencyMode == IterateCurrencyMode.ENTER) {
 
 					final Tick tick = series.getTick(iter);
@@ -195,8 +198,11 @@ public class AutomatedTrader {
 			}
 		}
 
+		parameters.getAllocator().processAccountingForSales(sales, iter);
+
 		parameters.getAllocator().processTickBuys( buyTicks, buyTradingRecords, activePositionsAtIndexTracker, iter);
 
+		parameters.getAllocator().iterationFinalAccountingProcessing(iter);
 
 	}
 
@@ -310,12 +316,12 @@ public class AutomatedTrader {
 		return timeSeries;
 	}
 
-	private void processTickExit(final String currencyPair, final TradingRecord tradingRecord, final TimeSeries series, final int curIndex) {
+	private void processTickExit(final String currencyPair, final TradingRecord tradingRecord, final TimeSeries series, final int curIndex, final List <Trade> sales) {
 
 		final Tick tick = series.getTick(curIndex);
 
-		processStopLoss(tradingRecord, series, curIndex, tick);
-		processExitStrategy(curIndex, tradingRecord, tick, currencyPair);
+		processStopLoss(tradingRecord, series, curIndex, tick, sales);
+		processExitStrategy(curIndex, tradingRecord, tick, currencyPair, sales);
 
 
 	}
@@ -353,7 +359,7 @@ public class AutomatedTrader {
 	 * @param currencyPair
 	 * @return True if exit indicated, does not necessarily mean the trade succesfully exited
 	 */
-	private boolean processExitStrategy(final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair) {
+	private boolean processExitStrategy(final int curIndex, final TradingRecord tradingRecord, final Tick tick, final String currencyPair, final List <Trade> sales) {
 		//TODO this may need to be re-worked to probably build a strategy each time because it needs to set the current price adjusted for the fee, since a decision to buy / sell, must take into account the fee
 
 		//only process if there is an open trade
@@ -364,6 +370,7 @@ public class AutomatedTrader {
 				boolean exited = exitTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, exitAmount);
 
 				if (exited) {
+					sales.add(tradingRecord.getLastTrade());
 					Order exit = tradingRecord.getLastExit();
 					loggerHelper.logTickRow(currencyPair,"EXIT", exit.getIndex(), exit.getPrice().toDouble(), exit.getAmount().toDouble());
 				}
@@ -374,7 +381,7 @@ public class AutomatedTrader {
 	}
 
 	//TODO this would need to account for fees if its going to be used, as fees have to be considered in all buying / selling decisions
-	private void processStopLoss(final TradingRecord tradingRecord, final TimeSeries series, final int curIndex, final Tick tick) {
+	private void processStopLoss(final TradingRecord tradingRecord, final TimeSeries series, final int curIndex, final Tick tick, final List <Trade> sales) {
 		//If stop loss is triggered, take this out of any future trading
 		//This is an experiment to try removing ones that trigger a stop loss, the idea is that we may want to decide not to trade
 		//certain currencies at all, as they may be too volatile for an algorithm
@@ -388,6 +395,7 @@ public class AutomatedTrader {
 			if (shouldStopLoss) {
 				boolean exited = tradingRecord.exit(curIndex, tick.getClosePrice(), tradingRecord.getLastEntry().getAmount());
 				if (exited) {
+					sales.add(tradingRecord.getLastTrade());
 					Order exit = tradingRecord.getLastExit();
 					loggerHelper.getDefaultLogger().trace("STOP LOSS TRIGGERED, TRADING HALTED for loss of %: " +
 							calculatePercentChange(lastEntryPrice, exit.getPrice()) + " on index: " + exit.getIndex()
