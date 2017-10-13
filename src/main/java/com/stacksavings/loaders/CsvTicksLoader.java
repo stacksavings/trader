@@ -127,47 +127,42 @@ public class CsvTicksLoader {
 		CSVReader csvReader = null;
         try {
 
-        	InputStream stream = new FileInputStream(file); 
+            InputStream stream = new FileInputStream(file);
 
-            csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
-        	
-            String[] line;
+            csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 0);
+
             int iter = 0;
-            while ((line = csvReader.readNext()) != null) 
-            {
-                //ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
-                // ZonedDateTime date = ZonedDateTime.parse(line[0]).withZoneSameInstant(ZoneId.systemDefault());
-                DateTime date = DateTime.parse(line[DATE_TIME_INDEX], DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
-                
-                double open = getValue(line, iter, OPEN_INDEX, useConversionSeries, conversionSeries);
-                double high = getValue(line, iter, HIGH_INDEX, useConversionSeries, conversionSeries);
-                double low = getValue(line, iter, LOW_INDEX, useConversionSeries, conversionSeries);
-                double close = getValue(line, iter, CLOSE_INDEX, useConversionSeries, conversionSeries);
-                double volume = getValue(line, iter, VOLUME_INDEX, useConversionSeries, conversionSeries);
+            for (final String[] line : csvReader.readAll()) {
+                {
+                    //ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
+                    // ZonedDateTime date = ZonedDateTime.parse(line[0]).withZoneSameInstant(ZoneId.systemDefault());
+                    DateTime date = DateTime.parse(line[DATE_TIME_INDEX], DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
 
-                ticks.add(new Tick(date, open, high, low, close, volume));
+                    double open = getValue(line, iter, OPEN_INDEX, useConversionSeries, conversionSeries);
+                    double high = getValue(line, iter, HIGH_INDEX, useConversionSeries, conversionSeries);
+                    double low = getValue(line, iter, LOW_INDEX, useConversionSeries, conversionSeries);
+                    double close = getValue(line, iter, CLOSE_INDEX, useConversionSeries, conversionSeries);
+                    double volume = getValue(line, iter, VOLUME_INDEX, useConversionSeries, conversionSeries);
 
-                if (buySellCacheForCurrency != null) {
-                    final Map<String, Boolean> buySellCacheMap = new HashMap<String, Boolean>();
-                    final boolean shouldEnter = Boolean.valueOf(line[SHOULD_ENTER_INDEX]);
-                    final boolean shouldExit = Boolean.valueOf(line[SHOULD_EXIT_INDEX]);
+                    ticks.add(new Tick(date, open, high, low, close, volume));
 
-                    buySellCacheMap.put("shouldenter", shouldEnter);
-                    buySellCacheMap.put("shouldexit", shouldExit);
-                    buySellCacheForCurrency.add(buySellCacheMap);
+                    if (buySellCacheForCurrency != null) {
+                        final Map<String, Boolean> buySellCacheMap = new HashMap<String, Boolean>();
+                        final boolean shouldEnter = Boolean.valueOf(line[SHOULD_ENTER_INDEX]);
+                        final boolean shouldExit = Boolean.valueOf(line[SHOULD_EXIT_INDEX]);
+
+                        buySellCacheMap.put("shouldenter", shouldEnter);
+                        buySellCacheMap.put("shouldexit", shouldExit);
+                        buySellCacheForCurrency.add(buySellCacheMap);
+                    }
+
+                    iter++;
                 }
-
-                iter++;
             }
-        } 
-        catch (IOException ioe) 
-        {
-        	ioe.printStackTrace();
-        } 
-        catch (NumberFormatException nfe) 
-        {
-        	nfe.printStackTrace();
         }
+        catch (final Exception e) {
+                e.printStackTrace();
+            }
         finally{
         	if(csvReader!=null ){
         		try 
@@ -197,7 +192,7 @@ public class CsvTicksLoader {
             DateTime date = DateTime.parse(chartData.getDate(), DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
 
             line[OPEN_INDEX] = chartData.getOpen() + "";
-            line[HIGH_INDEX] = chartData.getClose() + "";
+            line[HIGH_INDEX] = chartData.getHigh() + "";
             line[LOW_INDEX] = chartData.getLow() + "";
             line[CLOSE_INDEX] = chartData.getClose() + "";
             line[VOLUME_INDEX] = chartData.getVolume() + "";

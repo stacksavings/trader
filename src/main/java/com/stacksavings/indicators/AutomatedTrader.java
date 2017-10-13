@@ -326,6 +326,7 @@ public class AutomatedTrader {
 
 
 		timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries, buySellCacheForCurrency);
+
 		if (!parameters.isLiveTradeMode()) {
 			timeSeriesHolder.put(currency, timeSeries);
 		}
@@ -357,7 +358,7 @@ public class AutomatedTrader {
 		//only process if there is not already an open trade
 		if (tradingRecord != null && tradingRecord.isClosed()) {
 			if (runEnterStrategy(curIndex, currencyPair, tradingRecord)) {
-
+				System.out.println("curIndex: " + curIndex + " currencyPair " + currencyPair + " tick " + tick.getBeginTime() + " " + tick.getClosePrice());
 				boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
 				if (aboveExperimentalIndicator) {
 					return true;
@@ -381,7 +382,6 @@ public class AutomatedTrader {
 		//only process if there is an open trade
 		if (tradingRecord != null && !tradingRecord.isClosed()) {
 			if (runExitStrategy(curIndex, currencyPair, tradingRecord)) {
-
 				final Decimal exitAmount = tradingRecord.getCurrentTrade().getEntry().getAmount();
 				boolean exited = exitTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, exitAmount);
 

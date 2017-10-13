@@ -261,9 +261,8 @@ public class PoloniexClientApi {
 	 */
 	private void runStrategy(final TimeSeries timeSeries, final List<ChartData> chartDataList , final StrategyHolder strategyHolder) {
 
-		final TradingRecord tradingRecord = new TradingRecord();
 		strategyHolder.setup(timeSeries);
-		for (int i = 0; i < timeSeries.getTickCount(); i++) {
+		for (int i = 0; i < chartDataList.size(); i++) {
 
 			final ChartData chartData = chartDataList.get(i);
 
@@ -272,7 +271,6 @@ public class PoloniexClientApi {
 
 			chartData.setStrategyShouldEnter(shouldEnter);
 			chartData.setStrategyShouldExit(shouldExit);
-
 		}
 	}
 	
@@ -299,6 +297,7 @@ public class PoloniexClientApi {
 
 				List<ChartData> chartDataList = null;
 				int i = 0;
+				//retry if failed logic
 				while (i < 4) {
 					chartDataList = this.returnChartData(currencyPair);
 					if (chartDataList != null) {
@@ -307,7 +306,6 @@ public class PoloniexClientApi {
 					System.out.println("retrying for currency pair " + conversionCurrency + " as last attempt failed");
 					i++;
 				}
-
 
 				fileManager.writeCSV(currencyPair, chartDataList);
 
