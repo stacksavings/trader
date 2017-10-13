@@ -60,7 +60,6 @@ public abstract class Allocator {
 
     protected void depositBtc(final Decimal conversionCurAmt, final int iter) {
         final Decimal btcAmountToAdd = GenericUtils.convertToBtc(conversionCurAmt, iter, conversionSeries);
-        System.out.println("iter " + iter + " depositing converted btc " + btcAmountToAdd);
         btcBalance = btcAmountToAdd.plus(btcBalance);
     }
 
@@ -83,17 +82,14 @@ public abstract class Allocator {
 
     //TODO this probably shouldn't be used in live trading, instead would need new methods that take in btc
     protected Decimal withdrawConversionCurrency(final Decimal conversionCurAmt) {
-        System.out.println("conversionCurAmt: " + conversionCurAmt);
         final Decimal afterFeeAmt = applyFee(conversionCurAmt);
         final Decimal resultingConversionCurBalance = conversionCurrencyBalance.minus(conversionCurAmt);
         if (!resultingConversionCurBalance.isNegative()) {
             conversionCurrencyBalance = resultingConversionCurBalance;
-            System.out.println("afterFeeAmt: " + afterFeeAmt);
             return afterFeeAmt;
         }
         Decimal partialReturnAmount = applyFee(conversionCurrencyBalance);
         conversionCurrencyBalance = Decimal.ZERO;
-        System.out.println("partialReturnAmount: " + partialReturnAmount);
         return partialReturnAmount;
     }
 
