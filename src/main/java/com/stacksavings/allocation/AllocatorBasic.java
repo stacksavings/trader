@@ -18,21 +18,26 @@ public class AllocatorBasic extends Allocator {
 
     public void processTickBuys(final Map<String, Tick> buyTicks, final Map<String, TradingRecord> buyTradingRecords, final Map<Integer, Integer> activePositionsAtIndexTracker, final int curIndex) {
 
-
         for (final String currencyPair : buyTicks.keySet()) {
+
+            //have to skip the conversion currency
+            if (currencyPair.equalsIgnoreCase(parameters.getConversionCurrency())) {
+                continue;
+            }
 
             final TradingRecord tradingRecord = buyTradingRecords.get(currencyPair);
             final Tick tick = buyTicks.get(currencyPair);
 
             Decimal numberToBuy = determineTradeAmount(tradingRecord, tick.getClosePrice());
 
-            final Decimal totalNeeded = tick.getClosePrice().multipliedBy(numberToBuy);
+            final Decimal totalWantedToBuy= tick.getClosePrice().multipliedBy(numberToBuy);
 
-            final Decimal availableFundsForTrade = getFundsForTrade(totalNeeded, curIndex);
-            numberToBuy = determineTradeAmount(tradingRecord, availableFundsForTrade);
+            final Decimal availableFundsForTrade = getFundsForTrade(totalWantedToBuy, curIndex);
+
+            numberToBuy = availableFundsForTrade.dividedBy(tick.getClosePrice());
 
             if (!availableFundsForTrade.isNegative()) {
-                boolean entered = AutomatedTrader.enterTrade(currencyPair, tradingRecord, availableFundsForTrade, curIndex, numberToBuy, parameters);
+                boolean entered = AutomatedTrader.enterTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex,  numberToBuy, parameters);
 
                 if (entered) {
                     Order order = tradingRecord.getLastEntry();
@@ -45,23 +50,23 @@ public class AllocatorBasic extends Allocator {
 
     /**
      * Get the actual amt needed in BTC for the trade, converting from the conversion curency if needed (and applying fees)
-     * @param totalNeeded
+     * @param totalWanted
      * @return return true if the full amount needed is now available in BTC
      */
-    protected Decimal getFundsForTrade(final Decimal totalNeeded, final int iter) {
+    protected Decimal getFundsForTrade(final Decimal totalWanted, final int iter) {
 
         Decimal retAmt = Decimal.ZERO;
 
         //first see if we have this amount available in BTC
-        final Decimal btcAmt = withdrawBtc(totalNeeded, iter);
+        final Decimal btcAmt = withdrawBtc(totalWanted, iter);
 
         final Decimal convertedBtcAmt = GenericUtils.convertfromBtc(btcAmt, iter, conversionSeries);
 
         retAmt = convertedBtcAmt;
 
         //if there wasn't enough BTC, now try to get funds from the
-        if (retAmt.isLessThan(totalNeeded)) {
-            Decimal remainingAmtNeeded = totalNeeded.minus(retAmt);
+        if (retAmt.isLessThan(totalWanted)) {
+            Decimal remainingAmtNeeded = totalWanted.minus(retAmt);
             retAmt = retAmt.plus(withdrawConversionCurrency(remainingAmtNeeded));
         }
 

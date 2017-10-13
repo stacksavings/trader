@@ -99,6 +99,7 @@ public class AutomatedTrader {
 
 		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
+
 			if (parameters.isUseConversionSeries()) {
 				conversionTimeSeries = getConversionCurrencySeries(currencyPairList);
 				if (conversionTimeSeries == null) {
