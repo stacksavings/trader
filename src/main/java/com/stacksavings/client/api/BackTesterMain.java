@@ -107,14 +107,14 @@ public class BackTesterMain {
 	public static void main(String[] args) 
 	{
 
-		final boolean downloadData = true;
+		final boolean downloadData = false;
 		final boolean runBackTest = true;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
 
 		//String fromDate = "2017-08-01 00:00:00";
-		String fromDate = "2017-09-15 00:00:00";
+		String fromDate = "2017-09-28 00:00:00";
 		// yyyy-MM-dd HH:mm:ss
 		String toDate = "2017-09-30 00:00:00";
 
@@ -123,7 +123,10 @@ public class BackTesterMain {
 		if (downloadData) {
 			FileCleaner.getInstance().clearDirectory();
 
-			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY);
+			//hack for now, this shoulld be refactored to be more elegant as the stategyholder is also created again for the params
+			final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
+
+			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY, strategyHolder);
 
 		}
 
@@ -167,16 +170,20 @@ public class BackTesterMain {
 		final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
 
 		Parameters params = getDefaultParameters1(fromDate, toDate, strategyHolder);
+		params.setUseCachedBuySellSignals(true);
+		parameters.add(params);
+
+		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		parameters.add(params);
 
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		params.setCurrencyIncludeList(null);
-		parameters.add(params);
+		//parameters.add(params);
 
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		params.setCurrencyIncludeList(null);
 		params.setCurrencySkipList(null);
-		parameters.add(params);
+		//parameters.add(params);
 
 
 		return parameters;

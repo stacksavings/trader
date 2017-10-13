@@ -34,6 +34,8 @@ public class Parameters {
 
     private boolean applyExperimentalIndicator;
 
+    private boolean useCachedBuySellSignals;
+
     private Allocator allocator;
 
     public String getFromDate() {
@@ -146,5 +148,13 @@ public class Parameters {
 
     public void setCurrencyIncludeList(List<String> currencyIncludeList) {
         this.currencyIncludeList = currencyIncludeList;
+    }
+
+    public boolean isUseCachedBuySellSignals() {
+        return useCachedBuySellSignals;
+    }
+
+    public void setUseCachedBuySellSignals(boolean useCachedBuySellSignals) {
+        this.useCachedBuySellSignals = useCachedBuySellSignals;
     }
 }

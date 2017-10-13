@@ -21,6 +21,10 @@ public class ChartData {
 	private double volume;// : 329.6493784,
 	private double quoteVolume; // : 54434.7809242,
 	private double weightedAverage; // : 0.00605585
+	private boolean strategyShouldEnter;
+	private boolean strategyShouldExit;
+
+	private static String DELIMITER = ",";
 
 	public String getDate() {
 		
@@ -97,11 +101,36 @@ public class ChartData {
 	public void setWeightedAverage(double weightedAverage) {
 		this.weightedAverage = weightedAverage;
 	}
-	
+
+	public boolean strategyShouldEnter() {
+		return strategyShouldEnter;
+	}
+
+	public void setStrategyShouldEnter(boolean strategyShouldEnter) {
+		this.strategyShouldEnter = strategyShouldEnter;
+	}
+
+	public boolean strategyShouldExit() {
+		return strategyShouldExit;
+	}
+
+	public void setStrategyShouldExit(boolean strategyShouldExit) {
+		this.strategyShouldExit = strategyShouldExit;
+	}
+
 	@Override
 	public String toString()
 	{
-		return getDate()+","+getHigh()+","+getLow()+","+getOpen()+","+getClose()+","+getVolume()+","+getQuoteVolume()+","+getWeightedAverage();
+		return getDate() + DELIMITER
+				+ getHigh() + DELIMITER
+				+ getLow() + DELIMITER
+				+ getOpen() + DELIMITER
+				+ getClose() + DELIMITER
+				+ getVolume() + DELIMITER
+				+ getQuoteVolume() + DELIMITER
+				+ getWeightedAverage() + DELIMITER
+				+ strategyShouldEnter() + DELIMITER
+				+ strategyShouldExit() + DELIMITER;
 	}
 
 }

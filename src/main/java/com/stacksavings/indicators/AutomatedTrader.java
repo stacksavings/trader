@@ -44,6 +44,8 @@ public class AutomatedTrader {
 	private Map<String, List<Decimal>> currencyTotals;
 	private Map<String, TimeSeries> timeSeriesHolder;
 
+	private Map<String, List<Map<String, Boolean>>> buySellCache = new HashMap<String, List<Map<String, Boolean>>>();
+
 	private enum IterateCurrencyMode {
 		EXIT, ENTER;
 	}
@@ -99,6 +101,13 @@ public class AutomatedTrader {
 
 		if(currencyPairList != null && currencyPairList.size() > 0)
 		{
+
+			if (!parameters.isLiveTradeMode() && parameters.isUseCachedBuySellSignals()) {
+				buySellCache = new HashMap<String, List<Map<String, Boolean>>>();
+				for (final String currency : currencyPairList) {
+					buySellCache.put(currency, new ArrayList<Map<String, Boolean>>());
+				}
+			}
 
 			if (parameters.isUseConversionSeries()) {
 				conversionTimeSeries = getConversionCurrencySeries(currencyPairList);
@@ -310,7 +319,13 @@ public class AutomatedTrader {
 			fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
 		}
 
-		timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries);
+		List<Map<String, Boolean>> buySellCacheForCurrency = null;
+		if (parameters.isUseCachedBuySellSignals()) {
+			buySellCacheForCurrency = buySellCache.get(currency);
+		}
+
+
+		timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries, buySellCacheForCurrency);
 		if (!parameters.isLiveTradeMode()) {
 			timeSeriesHolder.put(currency, timeSeries);
 		}
@@ -341,7 +356,7 @@ public class AutomatedTrader {
 
 		//only process if there is not already an open trade
 		if (tradingRecord != null && tradingRecord.isClosed()) {
-			if (parameters.getStrategyHolder().shouldEnter(curIndex, tradingRecord)) {
+			if (runEnterStrategy(curIndex, currencyPair, tradingRecord)) {
 
 				boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
 				if (aboveExperimentalIndicator) {
@@ -365,7 +380,7 @@ public class AutomatedTrader {
 
 		//only process if there is an open trade
 		if (tradingRecord != null && !tradingRecord.isClosed()) {
-			if (parameters.getStrategyHolder().shouldExit(curIndex, tradingRecord)) {
+			if (runExitStrategy(curIndex, currencyPair, tradingRecord)) {
 
 				final Decimal exitAmount = tradingRecord.getCurrentTrade().getEntry().getAmount();
 				boolean exited = exitTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex, exitAmount);
@@ -379,6 +394,29 @@ public class AutomatedTrader {
 			}
 		}
 		return  false;
+	}
+
+	private boolean runEnterStrategy(final int curIndex, final String currencyPair, final TradingRecord tradingRecord) {
+		boolean shouldEnter = false;
+		if (!parameters.isLiveTradeMode() && parameters.isUseCachedBuySellSignals()) {
+			shouldEnter = buySellCache.get(currencyPair).get(curIndex).get("shouldenter");
+
+		} else {
+			shouldEnter = parameters.getStrategyHolder().shouldEnter(curIndex, null);
+		}
+		return shouldEnter;
+
+	}
+
+	private boolean runExitStrategy(final int curIndex, final String currencyPair, final TradingRecord tradingRecord) {
+		boolean shouldExit = false;
+		if (!parameters.isLiveTradeMode() && parameters.isUseCachedBuySellSignals()) {
+			shouldExit = buySellCache.get(currencyPair).get(curIndex).get("shouldexit");
+		} else {
+			shouldExit = parameters.getStrategyHolder().shouldExit(curIndex, null);
+		}
+		return shouldExit;
+
 	}
 
 	//TODO this would need to account for fees if its going to be used, as fees have to be considered in all buying / selling decisions

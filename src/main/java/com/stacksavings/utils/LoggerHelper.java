@@ -89,7 +89,8 @@ public class LoggerHelper {
                 + "STOP_LOSS_RATIO" + TAB
                 + "APPLY_EXP_INDICATOR" + TAB
                 + "USE_CUR_SKIP_LIST" + TAB
-                + "STRATEGY";
+                + "STRATEGY" + TAB
+                + "USE_CACHED_BUY_SELL";
 
         final String logString = runIdentifier + TAB
                 + parameters.getFromDate() + TAB
@@ -102,7 +103,8 @@ public class LoggerHelper {
                 + parameters.getStopLossRatio() + TAB
                 + parameters.isApplyExperimentalIndicator() + TAB
                 + usesCurrencySkipList + TAB
-                + parameters.getStrategyHolder().getStrategyName();
+                + parameters.getStrategyHolder().getStrategyName() + TAB
+                + parameters.isUseCachedBuySellSignals();
 
         loggerParameters.info(headersString);
         loggerParameters.info(logString);

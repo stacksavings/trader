@@ -8,13 +8,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.stacksavings.client.api.dto.ChartData;
 import eu.verdelhan.ta4j.Decimal;
+import javafx.scene.chart.Chart;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
@@ -37,6 +37,9 @@ public class CsvTicksLoader {
     private final static int LOW_INDEX = 3;
     private final static int CLOSE_INDEX = 4;
     private final static int VOLUME_INDEX = 5;
+
+    private final static int SHOULD_ENTER_INDEX = 8;
+    private final static int SHOULD_EXIT_INDEX = 9;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -115,7 +118,7 @@ public class CsvTicksLoader {
      * @param fileName
      * @return
      */
-    public TimeSeries loadSeriesByFileName(final String fileName, final boolean useConversionSeries, final TimeSeries conversionSeries) {
+    public TimeSeries loadSeriesByFileName(final String fileName, final boolean useConversionSeries, final TimeSeries conversionSeries, final List<Map<String, Boolean>> buySellCacheForCurrency) {
 
 		File file = new File(fileName);
 		
@@ -123,7 +126,7 @@ public class CsvTicksLoader {
 		
 		CSVReader csvReader = null;
         try {
-        	
+
         	InputStream stream = new FileInputStream(file); 
 
             csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
@@ -143,6 +146,16 @@ public class CsvTicksLoader {
                 double volume = getValue(line, iter, VOLUME_INDEX, useConversionSeries, conversionSeries);
 
                 ticks.add(new Tick(date, open, high, low, close, volume));
+
+                if (buySellCacheForCurrency != null) {
+                    final Map<String, Boolean> buySellCacheMap = new HashMap<String, Boolean>();
+                    final boolean shouldEnter = Boolean.valueOf(line[SHOULD_ENTER_INDEX]);
+                    final boolean shouldExit = Boolean.valueOf(line[SHOULD_EXIT_INDEX]);
+
+                    buySellCacheMap.put("shouldenter", shouldEnter);
+                    buySellCacheMap.put("shouldexit", shouldExit);
+                    buySellCacheForCurrency.add(buySellCacheMap);
+                }
 
                 iter++;
             }
@@ -172,7 +185,37 @@ public class CsvTicksLoader {
         return new TimeSeries("apple_ticks", ticks);
     }
 
-    private double getValue(final String[] line, final int iter, final int index, final boolean useConversionSeries, final TimeSeries conversionSeries) {
+    public static TimeSeries loadSeriesFromChartData(final List<ChartData> chartDataList, final boolean useConversionSeries, final TimeSeries conversionSeries) {
+
+        List<Tick> ticks = new ArrayList<>();
+
+        int iter = 0;
+        for (final ChartData chartData : chartDataList)
+        {
+            final String[] line = new String[6];
+
+            DateTime date = DateTime.parse(chartData.getDate(), DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
+
+            line[OPEN_INDEX] = chartData.getOpen() + "";
+            line[HIGH_INDEX] = chartData.getClose() + "";
+            line[LOW_INDEX] = chartData.getLow() + "";
+            line[CLOSE_INDEX] = chartData.getClose() + "";
+            line[VOLUME_INDEX] = chartData.getVolume() + "";
+
+            double open = getValue(line, iter, OPEN_INDEX, useConversionSeries, conversionSeries);
+            double high = getValue(line, iter, HIGH_INDEX, useConversionSeries, conversionSeries);
+            double low = getValue(line, iter, LOW_INDEX, useConversionSeries, conversionSeries);
+            double close = getValue(line, iter, CLOSE_INDEX, useConversionSeries, conversionSeries);
+            double volume = getValue(line, iter, VOLUME_INDEX, useConversionSeries, conversionSeries);
+
+            ticks.add(new Tick(date, open, high, low, close, volume));
+            iter++;
+        }
+
+        return new TimeSeries("chart_data", ticks);
+    }
+
+    private static double getValue(final String[] line, final int iter, final int index, final boolean useConversionSeries, final TimeSeries conversionSeries) {
 
         double retDouble = 0;
         if (useConversionSeries) {
@@ -185,7 +228,7 @@ public class CsvTicksLoader {
 
     }
 
-    private double convertUsingConversionSeries(final String[] line, final int iter, final int index, final TimeSeries conversionSeries) {
+    private static double convertUsingConversionSeries(final String[] line, final int iter, final int index, final TimeSeries conversionSeries) {
         final Double doubleValue = Double.parseDouble(line[index]);
 
         final Tick conversionTick = conversionSeries.getTick(iter);

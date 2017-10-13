@@ -9,6 +9,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.stacksavings.loaders.CsvTicksLoader;
+import com.stacksavings.strategies.StrategyHolder;
+import eu.verdelhan.ta4j.TimeSeries;
+import eu.verdelhan.ta4j.TradingRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -173,13 +177,15 @@ public class PoloniexClientApi {
 	 * @param currencyPair
 	 * @return
 	 */
-	public List<ChartData> returnChartDataFromDateToDate(String fromDate, String toDate, String currencyPair) 
+	public List<ChartData> returnChartDataFromDateToDate(String fromDate, String toDate, String currencyPair)
 	{
 		loggerManager.info("begin returnChartData:"+currencyPair);
+
+		currencyPair = currencyPair.toUpperCase();
 		
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
-		
+
 		try {
 			
 			SimpleDateFormat sdf =new SimpleDateFormat(Constants.YYYY_MM_DD_HH_MM_SS);
@@ -210,12 +216,13 @@ public class PoloniexClientApi {
 			restApiService = restApiService.replaceAll("startend", lDateEnd.toString() );
 			
 			restApiService = restApiService.replaceAll("currency_pair", currencyPair);
-			
+
 			HttpGet request = new HttpGet(restApiService);
 			HttpResponse response;
 			
 			response = client.execute(request);
 			HttpEntity entity1 = response.getEntity();
+
 			byte[] byteData = EntityUtils.toByteArray(entity1);
 
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -244,6 +251,29 @@ public class PoloniexClientApi {
 		*/
 		
 		return null;
+	}
+
+	/**
+	 * Run the strategy to record all entry / exit signals
+	 * @param timeSeries
+	 * @param chartDataList
+	 * @param strategyHolder
+	 */
+	private void runStrategy(final TimeSeries timeSeries, final List<ChartData> chartDataList , final StrategyHolder strategyHolder) {
+
+		final TradingRecord tradingRecord = new TradingRecord();
+		strategyHolder.setup(timeSeries);
+		for (int i = 0; i < timeSeries.getTickCount(); i++) {
+
+			final ChartData chartData = chartDataList.get(i);
+
+			final boolean shouldEnter = strategyHolder.shouldEnter(i, null);
+			final boolean shouldExit = strategyHolder.shouldExit(i, null);
+
+			chartData.setStrategyShouldEnter(shouldEnter);
+			chartData.setStrategyShouldExit(shouldExit);
+
+		}
 	}
 	
 	
@@ -291,35 +321,54 @@ public class PoloniexClientApi {
 		
 	}
 
-	public void execute(String fromDate, String toDate, final String conversionCurrency)
+	public void execute(String fromDate, String toDate, final String conversionCurrency, final StrategyHolder strategyHolder)
 	{
+
+		final List<ChartData> conversionCurrencyChartData = generateChartData(fromDate, toDate, conversionCurrency);
+		fileManager.writeCSV(fromDate, toDate, conversionCurrency, conversionCurrencyChartData);
+		final TimeSeries conversionTimeSeries = CsvTicksLoader.loadSeriesFromChartData(conversionCurrencyChartData, false, null);
+
 		List<String> currencyList = this.returnCurrencyPair(conversionCurrency);
 		if(currencyList !=null && currencyList.size() > 0)
 		{
 			for (String currencyPair : currencyList)
 			{
+				if (currencyPair.equalsIgnoreCase(conversionCurrency)) {
+					continue;
+				}
 
+				final List<ChartData> chartDataList = generateChartData(fromDate, toDate, currencyPair);
+				final TimeSeries timeSeries = CsvTicksLoader.loadSeriesFromChartData(chartDataList, true, conversionTimeSeries);
 
-				List<ChartData> chartDataList = null;
-				int i = 0;
-				while (i < 4) {
-					chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair);
-					if (chartDataList != null) {
-						break;
-					}
-					System.out.println("retrying for currency pair " + conversionCurrency + " as last attempt failed");
-					i++;
+				if (strategyHolder != null) {
+					runStrategy(timeSeries, chartDataList, strategyHolder);
 				}
 
 				fileManager.writeCSV(fromDate, toDate, currencyPair, chartDataList);
 
-				sleep();
+				//sleep();
 			}
 		}
 		else
 		{
 			System.out.println("No hay datos");
 		}
+
+	}
+
+	private List<ChartData> generateChartData(String fromDate, String toDate, final String currencyPair) {
+		List<ChartData> chartDataList = null;
+		int i = 0;
+		while (i < 4) {
+			chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair);
+			if (chartDataList != null) {
+				break;
+			}
+			System.out.println("retrying for currency pair " + currencyPair + " as last attempt failed");
+			i++;
+		}
+
+		return chartDataList;
 
 	}
 
