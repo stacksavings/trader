@@ -357,8 +357,8 @@ public class AutomatedTrader {
 
 		//only process if there is not already an open trade
 		if (tradingRecord != null && tradingRecord.isClosed()) {
+			System.out.println("curIndex: " + curIndex + " currencyPair " + currencyPair + " tick " + tick.getBeginTime() + " " + tick.getClosePrice());
 			if (runEnterStrategy(curIndex, currencyPair, tradingRecord)) {
-				System.out.println("curIndex: " + curIndex + " currencyPair " + currencyPair + " tick " + tick.getBeginTime() + " " + tick.getClosePrice());
 				boolean aboveExperimentalIndicator = checkIfAboveExperimentalIndicatorThreshold(series, curIndex);
 				if (aboveExperimentalIndicator) {
 					return true;

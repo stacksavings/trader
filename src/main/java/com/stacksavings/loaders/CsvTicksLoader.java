@@ -66,52 +66,6 @@ public class CsvTicksLoader {
 		propertiesUtil = PropertiesUtil.getInstance();
 		
 	}
-
-	//TODO this should possibly be deprecated or removed
-    public TimeSeries loadSeries() {
-    	
-    	String directoryPath = propertiesUtil.getProps().getProperty("path.directory");
-		String fileName = propertiesUtil.getProps().getProperty("filename");
-		String filenameExtension = propertiesUtil.getProps().getProperty("filename.extension");
-		
-		SimpleDateFormat sdf = new SimpleDateFormat(Constants.YYYY_MM_DD);
-		
-		Date dateNow= new Date();
-		
-		String sDateNow = sdf.format(dateNow);
-		
-		File file = new File(directoryPath+fileName+"_"+sDateNow+"."+filenameExtension);
-		
-		List<Tick> ticks = new ArrayList<>();
-		
-        try {
-        	
-        	InputStream stream = new FileInputStream(file); 
-
-            CSVReader csvReader = new CSVReader(new InputStreamReader(stream, Charset.forName("UTF-8")), ',', '"', 1);
-        	
-            String[] line;
-            while ((line = csvReader.readNext()) != null) {
-                //ZonedDateTime date = LocalDate.parse(line[0], DATE_FORMAT).atStartOfDay(ZoneId.systemDefault());
-            	DateTime date = DateTime.parse(line[DATE_TIME_INDEX], DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
-
-                double open = Double.parseDouble(line[OPEN_INDEX]);
-                double high = Double.parseDouble(line[HIGH_INDEX]);
-                double low = Double.parseDouble(line[LOW_INDEX]);
-                double close = Double.parseDouble(line[CLOSE_INDEX]);
-                double volume = Double.parseDouble(line[VOLUME_INDEX]);
-
-                ticks.add(new Tick(date, open, high, low, close, volume));
-            }
-        } catch (IOException ioe) {
-            Logger.getLogger(CsvTicksLoader.class.getName()).log(Level.SEVERE, "Unable to load ticks from CSV", ioe);
-        } catch (NumberFormatException nfe) {
-            Logger.getLogger(CsvTicksLoader.class.getName()).log(Level.SEVERE, "Error while parsing value", nfe);
-        }
-
-        //TODO: name doesn't seem right
-        return new TimeSeries("apple_ticks", ticks);
-    }
     
     /**
      * 
