@@ -3,12 +3,11 @@ package com.stacksavings.client.api;
 import com.stacksavings.Parameter.Parameters;
 import com.stacksavings.allocation.Allocator;
 import com.stacksavings.allocation.AllocatorBasic;
-import com.stacksavings.indicators.AutomatedTrader;
+import com.stacksavings.controller.AutomatedTrader;
 import com.stacksavings.strategies.EMAStrategyHolder;
 import com.stacksavings.strategies.StrategyHolder;
 import com.stacksavings.utils.FileCleaner;
 import eu.verdelhan.ta4j.Decimal;
-import org.omg.Dynamic.Parameter;
 
 import java.util.ArrayList;
 import java.util.Arrays;

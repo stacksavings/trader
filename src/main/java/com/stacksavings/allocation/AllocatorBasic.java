@@ -1,10 +1,8 @@
 package com.stacksavings.allocation;
 
 import com.stacksavings.Parameter.Parameters;
-import com.stacksavings.indicators.AutomatedTrader;
 import com.stacksavings.tradingrecord.holders.TradingRecordHolder;
 import com.stacksavings.utils.GenericUtils;
-import com.stacksavings.utils.LoggerHelper;
 import eu.verdelhan.ta4j.*;
 
 import java.util.List;

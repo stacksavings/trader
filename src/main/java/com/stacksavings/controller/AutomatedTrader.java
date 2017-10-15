@@ -1,4 +1,4 @@
-package com.stacksavings.indicators;
+package com.stacksavings.controller;
 
 import com.stacksavings.Parameter.Parameters;
 import com.stacksavings.client.api.PoloniexClientApi;
@@ -9,7 +9,7 @@ import eu.verdelhan.ta4j.indicators.trackers.AverageDirectionalMovementIndicator
 import java.util.*;
 
 /**
- * TODO this class is in the wrong place, need to figure where this should go, it is not an indicator, just put in this package to try to get it working quickly
+ * Controller for trading
  * @author Rickd
  *
  */
