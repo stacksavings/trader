@@ -135,7 +135,6 @@ public class TradingRecordHolder {
         final Tick tick = timeSeries.getTick(curIter);
         //only process if there is not already an open trade
         if (tradingRecord != null && tradingRecord.isClosed()) {
-            System.out.println("curIndex: " + curIter + " currencyPair " + currencyPair + " tick " + tick.getBeginTime() + " " + tick.getClosePrice());
             if (runEnterStrategy()) {
                 return true;
 /*

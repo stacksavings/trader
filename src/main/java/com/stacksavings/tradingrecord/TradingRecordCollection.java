@@ -48,9 +48,6 @@ public class TradingRecordCollection {
     private CsvTicksLoader csvTicksLoader;
     private FileManager fileManager;
 
-
-
-
     public TradingRecordCollection() {
 
     }
@@ -66,6 +63,8 @@ public class TradingRecordCollection {
         this.conversionCurrency = conversionCurrency;
 
         this.curIter = 0;
+
+        tradingRecordHolderMap = new HashMap<String, TradingRecordHolder>();
 
         fileManager = FileManager.getInstance();
         csvTicksLoader = CsvTicksLoader.getInstance();
@@ -95,6 +94,7 @@ public class TradingRecordCollection {
 
     //TODO this should be re-worked, probably shouldn't be in this class, as need to use inversion of control
     public void createTradingRecordHolders(final String fromDate, final String toDate) {
+
         //TODO this should possibly be a new class type that handles this creation
         for (final String currencyPair : currencyPairList) {
             final TradingRecordHolder tradingRecordHolder = new TradingRecordHolder();
