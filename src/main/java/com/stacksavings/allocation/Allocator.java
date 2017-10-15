@@ -1,6 +1,7 @@
 package com.stacksavings.allocation;
 
 import com.stacksavings.Parameter.Parameters;
+import com.stacksavings.tradingrecord.holders.TradingRecordHolder;
 import com.stacksavings.utils.GenericUtils;
 import com.stacksavings.utils.LoggerHelper;
 import eu.verdelhan.ta4j.*;
@@ -99,11 +100,11 @@ public abstract class Allocator {
     }
 
 
-    public abstract void processTickBuys(final Map<String, Tick> buyTicks, final Map<String, TradingRecord> buyTradingRecords, final Map<Integer, Integer> activePositionsAtIndexTracker, final int curIndex);
+    public abstract void processTickBuys(final List<TradingRecordHolder> tradingRecordHolders, final Map<Integer, Integer> activePositionsAtIndexTracker, final int curIndex);
 
     protected abstract Decimal determineTradeAmount(final TradingRecord tradingRecord, final Decimal currentPrice);
 
-    public abstract void processAccountingForSales(final List<Trade> trades, final int iter);
+    public abstract void processAccountingForSales(final List<TradingRecordHolder> tradingRecordHolders, final int iter);
 
     public abstract void iterationFinalAccountingProcessing(final int iter);
 

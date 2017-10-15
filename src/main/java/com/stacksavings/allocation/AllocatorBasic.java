@@ -2,6 +2,7 @@ package com.stacksavings.allocation;
 
 import com.stacksavings.Parameter.Parameters;
 import com.stacksavings.indicators.AutomatedTrader;
+import com.stacksavings.tradingrecord.holders.TradingRecordHolder;
 import com.stacksavings.utils.GenericUtils;
 import com.stacksavings.utils.LoggerHelper;
 import eu.verdelhan.ta4j.*;
@@ -16,17 +17,19 @@ public class AllocatorBasic extends Allocator {
     }
 
 
-    public void processTickBuys(final Map<String, Tick> buyTicks, final Map<String, TradingRecord> buyTradingRecords, final Map<Integer, Integer> activePositionsAtIndexTracker, final int curIndex) {
+    public void processTickBuys(final List<TradingRecordHolder> tradingRecordHolders, final Map<Integer, Integer> activePositionsAtIndexTracker, final int curIndex) {
 
-        for (final String currencyPair : buyTicks.keySet()) {
+        for (final TradingRecordHolder tradingRecordHolder : tradingRecordHolders) {
+
+            final String currencyPair = tradingRecordHolder.getCurrencyPair();
 
             //have to skip the conversion currency
             if (currencyPair.equalsIgnoreCase(parameters.getConversionCurrency())) {
                 continue;
             }
 
-            final TradingRecord tradingRecord = buyTradingRecords.get(currencyPair);
-            final Tick tick = buyTicks.get(currencyPair);
+            final TradingRecord tradingRecord = tradingRecordHolder.getTradingRecord();
+            final Tick tick = tradingRecordHolder.getCurrentTick();
 
             Decimal numberToBuy = determineTradeAmount(tradingRecord, tick.getClosePrice());
 
@@ -37,11 +40,13 @@ public class AllocatorBasic extends Allocator {
             numberToBuy = availableFundsForTrade.dividedBy(tick.getClosePrice());
 
             if (!availableFundsForTrade.isNegative()) {
-                boolean entered = AutomatedTrader.enterTrade(currencyPair, tradingRecord, tick.getClosePrice(), curIndex,  numberToBuy, parameters);
+                boolean entered = tradingRecordHolder.enterTrade(tick.getClosePrice(), numberToBuy);
 
                 if (entered) {
                     Order order = tradingRecord.getLastEntry();
                     loggerHelper.logTickRow(currencyPair,"ENTER", order.getIndex(), order.getPrice().toDouble(), order.getAmount().toDouble());
+
+                    //TODO this needs to be re-worked
                     //AutomatedTrader.updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, curIndex, parameters);
                 }
             }
@@ -96,14 +101,15 @@ public class AllocatorBasic extends Allocator {
 
     /**
      * Deposit any BTC from this iteration's sales into our tracking object
-     * @param trades
+     * @param tradingRecordHolders
      * @param iter
      */
-    public void processAccountingForSales(final List<Trade> trades, final int iter) {
+    public void processAccountingForSales(final List<TradingRecordHolder> tradingRecordHolders, final int iter) {
 
         Decimal totalConversionCur = Decimal.ZERO;
 
-        for (final Trade trade : trades) {
+        for (final TradingRecordHolder tradingRecordHolder : tradingRecordHolders) {
+            final Trade trade = tradingRecordHolder.getTradingRecord().getLastTrade();
             final Decimal tradeTotal = trade.getEntry().getAmount().multipliedBy(trade.getEntry().getPrice());
             totalConversionCur = totalConversionCur.plus(tradeTotal);
         }
