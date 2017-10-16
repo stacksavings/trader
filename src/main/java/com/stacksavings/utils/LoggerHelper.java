@@ -1,10 +1,14 @@
 package com.stacksavings.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.stacksavings.Parameter.Parameters;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 public class LoggerHelper {
@@ -118,6 +122,18 @@ public class LoggerHelper {
             instance = new LoggerHelper();
         }
         return instance;
+    }
+
+    //TODO this is just initial proof of concept, should be re-worked later to be within regular logging flow
+    public static void logObject(final Object inputObject) {
+        try {
+            Map object = BeanUtils.describe(inputObject);
+            System.out.println("**describe:");
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            System.out.println(gson.toJson(object));
+        } catch (Exception e) {
+
+        }
     }
 
 

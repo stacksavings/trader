@@ -3,16 +3,16 @@ package com.stacksavings.client.api;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.stacksavings.loaders.CsvTicksLoader;
 import com.stacksavings.strategies.StrategyHolder;
+import com.stacksavings.utils.*;
 import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.TradingRecord;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -25,10 +25,6 @@ import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.stacksavings.client.api.dto.ChartData;
-import com.stacksavings.utils.Constants;
-import com.stacksavings.utils.FileManager;
-import com.stacksavings.utils.LoggerManager;
-import com.stacksavings.utils.PropertiesUtil;
 
 /**
  * 
@@ -259,7 +255,7 @@ public class PoloniexClientApi {
 	 * @param chartDataList
 	 * @param strategyHolder
 	 */
-	private void runStrategy(final TimeSeries timeSeries, final List<ChartData> chartDataList , final StrategyHolder strategyHolder) {
+	private void runStrategy(final String currencyPair, final TimeSeries timeSeries, final List<ChartData> chartDataList , final StrategyHolder strategyHolder) {
 
 		strategyHolder.setup(timeSeries);
 		for (int i = 0; i < chartDataList.size(); i++) {
@@ -268,6 +264,14 @@ public class PoloniexClientApi {
 
 			final boolean shouldEnter = strategyHolder.shouldEnter(i, null);
 			final boolean shouldExit = strategyHolder.shouldExit(i, null);
+
+			//TODO - temporary debugging code
+			if (currencyPair.equalsIgnoreCase("BTC_XEM") && i == 17) {
+				LoggerHelper.logObject(timeSeries);
+			}
+
+			//TODO - temporary debugging code
+			System.out.println("currency: " + currencyPair + " tick: " + i + " close price: " + timeSeries.getTick(i).getClosePrice() + " shouldEnter: " +shouldEnter+ " shouldExit: " +shouldExit);
 
 			chartData.setStrategyShouldEnter(shouldEnter);
 			chartData.setStrategyShouldExit(shouldExit);
@@ -319,7 +323,7 @@ public class PoloniexClientApi {
 		
 	}
 
-	public void execute(String fromDate, String toDate, final String conversionCurrency, final StrategyHolder strategyHolder)
+	public void execute(String fromDate, String toDate, final String conversionCurrency, final StrategyHolder strategyHolder, final List<String> currencyIncludeList, final List<String> currencySkipList)
 	{
 
 		final List<ChartData> conversionCurrencyChartData = generateChartData(fromDate, toDate, conversionCurrency);
@@ -327,6 +331,8 @@ public class PoloniexClientApi {
 		final TimeSeries conversionTimeSeries = CsvTicksLoader.loadSeriesFromChartData(conversionCurrencyChartData, false, null);
 
 		List<String> currencyList = this.returnCurrencyPair(conversionCurrency);
+		currencyList = GenericUtils.filterCurrencyList(currencyList, currencyIncludeList, currencySkipList);
+
 		if(currencyList !=null && currencyList.size() > 0)
 		{
 			for (String currencyPair : currencyList)
@@ -339,12 +345,10 @@ public class PoloniexClientApi {
 				final TimeSeries timeSeries = CsvTicksLoader.loadSeriesFromChartData(chartDataList, true, conversionTimeSeries);
 
 				if (strategyHolder != null) {
-					runStrategy(timeSeries, chartDataList, strategyHolder);
+					runStrategy(currencyPair, timeSeries, chartDataList, strategyHolder);
 				}
 
 				fileManager.writeCSV(fromDate, toDate, currencyPair, chartDataList);
-
-				//sleep();
 			}
 		}
 		else

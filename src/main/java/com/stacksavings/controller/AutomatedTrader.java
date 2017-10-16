@@ -6,6 +6,7 @@ import com.stacksavings.strategies.StrategyHolder;
 import com.stacksavings.tradingrecord.TradingRecordCollection;
 import com.stacksavings.tradingrecord.holders.TradingRecordHolder;
 import com.stacksavings.tradingrecord.holders.TradingRecordHolderFactory;
+import com.stacksavings.utils.GenericUtils;
 import com.stacksavings.utils.LoggerHelper;
 import eu.verdelhan.ta4j.*;
 import eu.verdelhan.ta4j.indicators.trackers.AverageDirectionalMovementIndicator;
@@ -45,27 +46,13 @@ public class AutomatedTrader {
 
 	}
 
-	private List<String> filterCurrencyList(List<String> currencyPairListTmp ) {
-		final List<String> currencyPairList = new ArrayList<String>();
-		for (final String currencyPair : currencyPairListTmp) {
-			if ( (parameters.getCurrencySkipList() != null && parameters.getCurrencySkipList().contains(currencyPair))
-					|| (parameters.getCurrencyIncludeList() != null && !parameters.getCurrencyIncludeList().contains(currencyPair))
-					) {
-				continue;
-			}
-			currencyPairList.add(currencyPair);
-		}
-		return  currencyPairList;
-	}
-	
-
 	public void run() throws Exception {
 
 		loggerHelper.logParameters(parameters);
 
 		final List<String> currencyPairListTmp = poloniexClientApi.returnCurrencyPair(parameters.getConversionCurrency());
 
-		final List<String> currencyPairList = filterCurrencyList(currencyPairListTmp);
+		final List<String> currencyPairList = GenericUtils.filterCurrencyList(currencyPairListTmp, parameters.getCurrencyIncludeList() , parameters.getCurrencySkipList());
 
 		if (parameters.isLiveTradeMode()) {
 			//logger.trace("******* BEGIN live trading iteration *******");

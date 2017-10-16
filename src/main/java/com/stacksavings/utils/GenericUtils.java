@@ -78,4 +78,17 @@ public class GenericUtils {
         return  buySellCacheForCurrency;
     }
 
+    public static List<String> filterCurrencyList(final List<String> currencyPairList, final List<String> currencyIncludeList , final List<String> currencySkipList) {
+        final List<String> currencyPairListRet = new ArrayList<String>();
+        for (final String currencyPair : currencyPairList) {
+            if ( (currencySkipList != null && currencySkipList.contains(currencyPair))
+                    || (currencyIncludeList != null && !currencyIncludeList.contains(currencyPair))
+                    ) {
+                continue;
+            }
+            currencyPairListRet.add(currencyPair);
+        }
+        return  currencyPairListRet;
+    }
+
 }

@@ -106,7 +106,7 @@ public class BackTesterMain {
 	public static void main(String[] args) 
 	{
 
-		final boolean downloadData = false;
+		final boolean downloadData = true;
 		final boolean runBackTest = true;
 
 		//This is only for back testing:
@@ -125,7 +125,7 @@ public class BackTesterMain {
 			//hack for now, this shoulld be refactored to be more elegant as the stategyholder is also created again for the params
 			final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
 
-			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY, strategyHolder);
+			PoloniexClientApi.getInstance().execute(fromDate, toDate, CONVERSION_CURRENCY, strategyHolder, currencyIncludeList, currencySkipList);
 
 		}
 
@@ -173,7 +173,7 @@ public class BackTesterMain {
 		parameters.add(params);
 
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
-		parameters.add(params);
+		//parameters.add(params);
 
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		params.setCurrencyIncludeList(null);

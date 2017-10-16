@@ -1,5 +1,7 @@
 package com.stacksavings.tradingrecord.holders;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.stacksavings.Parameter.Parameters;
 import com.stacksavings.loaders.CsvTicksLoader;
 import com.stacksavings.strategies.StrategyHolder;
@@ -10,6 +12,8 @@ import com.stacksavings.utils.PoloniexTraderClient;
 import eu.verdelhan.ta4j.*;
 import eu.verdelhan.ta4j.indicators.simple.ClosePriceIndicator;
 import eu.verdelhan.ta4j.trading.rules.StopLossRule;
+import org.apache.commons.beanutils.BeanUtils;
+
 import java.util.*;
 
 public class TradingRecordHolder {
@@ -69,7 +73,6 @@ public class TradingRecordHolder {
 
     }
 
-
     //TODO implement this, this is just for logging in back-testing
     protected void updateActivePositionsAtIndex(final TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker, final int iter, final Parameters parameters) {
 /*		if (!parameters.isLiveTradeMode()) {
@@ -80,9 +83,6 @@ public class TradingRecordHolder {
 			}
 		}*/
     }
-
-
-
 
     public boolean processTickExit(final int curIter) {
 
@@ -100,22 +100,26 @@ public class TradingRecordHolder {
 
     protected boolean runEnterStrategy() {
 
-/*        if (!parameters.isLiveTradeMode() && parameters.isUseCachedBuySellSignals()) {
-            shouldEnter = buySellCache.get(currencyPair).get(curIndex).get("shouldenter");
+        boolean shouldEnter = strategyHolder.shouldEnter(curIter, null);
 
-        } else {*/
-           boolean shouldEnter = strategyHolder.shouldEnter(curIter, null);
+        //TODO - temporary debugging code
+        if (currencyPair.equalsIgnoreCase("BTC_XEM") && curIter == 17) {
+            LoggerHelper.logObject(timeSeries);
+        }
+
+        //TODO - temporary debugging code
+        System.out.println("currency: " + currencyPair + " tick: " + curIter + " close price: " + timeSeries.getTick(curIter).getClosePrice() + " shouldEnter: " +shouldEnter);
 
         return shouldEnter;
 
     }
 
     protected boolean runExitStrategy() {
-/*        boolean shouldExit = false;
-        if (!parameters.isLiveTradeMode() && parameters.isUseCachedBuySellSignals()) {
-            shouldExit = buySellCache.get(currencyPair).get(curIndex).get("shouldexit");
-        } else {*/
-           boolean shouldExit = strategyHolder.shouldExit(curIter, null);
+
+        boolean shouldExit = strategyHolder.shouldExit(curIter, null);
+
+        //TODO - temporary debugging code
+        System.out.println("currency: " + currencyPair + " tick: " + curIter + " close price: " + timeSeries.getTick(curIter).getClosePrice() + " shouldExit: " +shouldExit);
 
         return shouldExit;
 

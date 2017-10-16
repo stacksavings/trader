@@ -108,7 +108,6 @@ public class TradingRecordCollection {
 
         final TimeSeries series = tradingRecordHolder.getTimeSeries();
 
-        //TODO this doesn't seem good, not properly object oriented, consider re-working
         strategyHolder.setup(series);
 
         return tradingRecordHolder;
