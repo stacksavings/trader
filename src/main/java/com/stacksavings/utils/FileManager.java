@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.opencsv.CSVReader;
 import com.stacksavings.client.api.dto.ChartData;
+import eu.verdelhan.ta4j.TimeSeries;
 
 /**
  * 
@@ -187,7 +188,7 @@ public class FileManager {
 	 * This method write a csv file
 	 * @param chartDataList
 	 */
-	public void writeCSV(String fromDate, String toDate, String currencyPair, List<ChartData> chartDataList) 
+	public void writeCSV(String fromDate, String toDate, String currencyPair, List<ChartData> chartDataList)
 	{
 
 		if(chartDataList != null && chartDataList.size()>0)
@@ -204,6 +205,7 @@ public class FileManager {
 				File file = getFileByName(fromDate, toDate, currencyPair);
 				
 				out = new PrintWriter(new FileWriter(file, true));
+
 				
 				for (ChartData chartData : chartDataList) 
 				{

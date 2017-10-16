@@ -32,14 +32,21 @@ import eu.verdelhan.ta4j.TimeSeries;
 public class CsvTicksLoader {
 
     private final static int DATE_TIME_INDEX = 0;
-    private final static int OPEN_INDEX = 1;
-    private final static int HIGH_INDEX = 2;
-    private final static int LOW_INDEX = 3;
-    private final static int CLOSE_INDEX = 4;
-    private final static int VOLUME_INDEX = 5;
+    //TODO this is a hack to make these public, needs to be refactored
+    public final static int OPEN_INDEX = 1;
+    public final static int HIGH_INDEX = 2;
+    public final static int LOW_INDEX = 3;
+    public final static int CLOSE_INDEX = 4;
+    public final static int VOLUME_INDEX = 5;
 
     private final static int SHOULD_ENTER_INDEX = 8;
     private final static int SHOULD_EXIT_INDEX = 9;
+
+    private final static int CONV_OPEN_INDEX = 10;
+    private final static int CONV_HIGH_INDEX = 11;
+    private final static int CONV_LOW_INDEX = 12;
+    private final static int CONV_CLOSE_INDEX = 13;
+    private final static int CONV_VOLUME_INDEX = 14;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -72,7 +79,7 @@ public class CsvTicksLoader {
      * @param fileName
      * @return
      */
-    public TimeSeries loadSeriesByFileName(final String fileName, final boolean useConversionSeries, final TimeSeries conversionSeries, final List<Map<String, Boolean>> buySellCacheForCurrency) {
+    public TimeSeries loadSeriesByFileName(final String fileName, final boolean useConversionSeries, final List<Map<String, Boolean>> buySellCacheForCurrency) {
 
 		File file = new File(fileName);
 		
@@ -92,11 +99,20 @@ public class CsvTicksLoader {
                     // ZonedDateTime date = ZonedDateTime.parse(line[0]).withZoneSameInstant(ZoneId.systemDefault());
                     DateTime date = DateTime.parse(line[DATE_TIME_INDEX], DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
 
-                    double open = getValue(line, iter, OPEN_INDEX, useConversionSeries, conversionSeries);
-                    double high = getValue(line, iter, HIGH_INDEX, useConversionSeries, conversionSeries);
-                    double low = getValue(line, iter, LOW_INDEX, useConversionSeries, conversionSeries);
-                    double close = getValue(line, iter, CLOSE_INDEX, useConversionSeries, conversionSeries);
-                    double volume = getValue(line, iter, VOLUME_INDEX, useConversionSeries, conversionSeries);
+                    double open = getValue(line, iter, OPEN_INDEX);
+                    double high = getValue(line, iter, HIGH_INDEX);
+                    double low = getValue(line, iter, LOW_INDEX);
+                    double close = getValue(line, iter, CLOSE_INDEX);
+                    double volume = getValue(line, iter, VOLUME_INDEX);
+
+                    //TODO this is messy still, need to refactor
+                    if (useConversionSeries) {
+                        open = getValue(line, iter, CONV_OPEN_INDEX);
+                        high = getValue(line, iter, CONV_HIGH_INDEX);
+                        low = getValue(line, iter, CONV_LOW_INDEX);
+                        close = getValue(line, iter, CONV_CLOSE_INDEX);
+                        volume = getValue(line, iter, CONV_VOLUME_INDEX);
+                    }
 
                     ticks.add(new Tick(date, open, high, low, close, volume));
 
@@ -133,7 +149,8 @@ public class CsvTicksLoader {
         return new TimeSeries("loadSeriesByFileName", ticks);
     }
 
-    public static TimeSeries loadSeriesFromChartData(final List<ChartData> chartDataList, final boolean useConversionSeries, final TimeSeries conversionSeries) {
+    //TODO this needs re-working before using it, check the  other similar method
+    public static TimeSeries loadSeriesFromChartData(final List<ChartData> chartDataList, final TimeSeries conversionSeries, final boolean loadConvertedValuess) {
 
         List<Tick> ticks = new ArrayList<>();
 
@@ -150,11 +167,24 @@ public class CsvTicksLoader {
             line[CLOSE_INDEX] = chartData.getClose() + "";
             line[VOLUME_INDEX] = chartData.getVolume() + "";
 
-            double open = getValue(line, iter, OPEN_INDEX, useConversionSeries, conversionSeries);
-            double high = getValue(line, iter, HIGH_INDEX, useConversionSeries, conversionSeries);
-            double low = getValue(line, iter, LOW_INDEX, useConversionSeries, conversionSeries);
-            double close = getValue(line, iter, CLOSE_INDEX, useConversionSeries, conversionSeries);
-            double volume = getValue(line, iter, VOLUME_INDEX, useConversionSeries, conversionSeries);
+            double open = getValue(line, iter, OPEN_INDEX);
+            double high = getValue(line, iter, HIGH_INDEX);
+            double low = getValue(line, iter, LOW_INDEX);
+            double close = getValue(line, iter, CLOSE_INDEX);
+            double volume = getValue(line, iter, VOLUME_INDEX);
+
+            //TODO this seems very wrong to be doing this here, need to look at refactoring
+            if (conversionSeries != null) {
+                chartData.generateConvertedValues(conversionSeries.getTick(iter));
+            }
+
+            if (loadConvertedValuess) {
+                open = chartData.getConv_open();
+                high = chartData.getConv_high();
+                low = chartData.getConv_low();
+                close = chartData.getConv_close();
+                volume = chartData.getConv_volume();
+            }
 
             ticks.add(new Tick(date, open, high, low, close, volume));
             iter++;
@@ -163,20 +193,14 @@ public class CsvTicksLoader {
         return new TimeSeries("loadSeriesFromChartData", ticks);
     }
 
-    private static double getValue(final String[] line, final int iter, final int index, final boolean useConversionSeries, final TimeSeries conversionSeries) {
+    private static double getValue(final String[] line, final int iter, final int index) {
 
-        double retDouble = 0;
-        if (useConversionSeries) {
-            retDouble = convertUsingConversionSeries(line, iter, index, conversionSeries);
-        } else {
-            retDouble = Double.parseDouble(line[index]);
-        }
-
+        double retDouble = Double.parseDouble(line[index]);
         return retDouble;
 
     }
 
-    private static double convertUsingConversionSeries(final String[] line, final int iter, final int index, final TimeSeries conversionSeries) {
+    public static double convertUsingConversionSeries(final String[] line, final int iter, final int index, final TimeSeries conversionSeries) {
         final Double doubleValue = Double.parseDouble(line[index]);
 
         final Tick conversionTick = conversionSeries.getTick(iter);
@@ -201,5 +225,30 @@ public class CsvTicksLoader {
         }
         return convertedDouble;
     }
+
+    public static double convertUsingConversionTick(final Double inputValue, final int index, final Tick conversionTick) {
+
+        Decimal conversionRate = null;
+
+        switch (index) {
+            case OPEN_INDEX:
+                conversionRate = conversionTick.getOpenPrice();
+            case HIGH_INDEX:
+                conversionRate = conversionTick.getMaxPrice();
+            case LOW_INDEX:
+                conversionRate = conversionTick.getMinPrice();
+            case CLOSE_INDEX:
+                conversionRate = conversionTick.getClosePrice();
+        }
+
+        double convertedDouble = inputValue.doubleValue();
+
+        if (conversionRate != null) {
+            convertedDouble = inputValue.doubleValue() * conversionRate.toDouble();
+        }
+        return convertedDouble;
+    }
+
+
 
 }

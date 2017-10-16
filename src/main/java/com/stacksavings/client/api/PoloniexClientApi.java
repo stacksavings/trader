@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import com.stacksavings.loaders.CsvTicksLoader;
 import com.stacksavings.strategies.StrategyHolder;
 import com.stacksavings.utils.*;
+import eu.verdelhan.ta4j.Tick;
 import eu.verdelhan.ta4j.TimeSeries;
 import eu.verdelhan.ta4j.TradingRecord;
 import org.apache.commons.beanutils.BeanUtils;
@@ -78,7 +79,7 @@ public class PoloniexClientApi {
 			
 			HttpGet request = new HttpGet(restApiService);
 			HttpResponse response;
-			
+
 			response = client.execute(request);
 			HttpEntity entity1 = response.getEntity();
 			JSONObject jsonObject =new JSONObject(EntityUtils.toString(entity1));
@@ -136,7 +137,7 @@ public class PoloniexClientApi {
 			restApiService = restApiService.replaceAll("startend", lDateEnd.toString());
 			
 			restApiService = restApiService.replaceAll("currency_pair", currencyPair);
-			
+
 			HttpGet request = new HttpGet(restApiService);
 			HttpResponse response;
 			
@@ -170,14 +171,14 @@ public class PoloniexClientApi {
 	 * 
 	 * @param fromDate
 	 * @param toDate
-	 * @param currencyPair
+	 * @param currencyPairInput
 	 * @return
 	 */
-	public List<ChartData> returnChartDataFromDateToDate(String fromDate, String toDate, String currencyPair)
+	public List<ChartData> returnChartDataFromDateToDate(final String fromDate, final String toDate, final String currencyPairInput, final TimeSeries conversionTimeSeries)
 	{
-		loggerManager.info("begin returnChartData: "+currencyPair);
+		loggerManager.info("begin returnChartData: "+ currencyPairInput);
 
-		currencyPair = currencyPair.toUpperCase();
+		final String currencyPair = currencyPairInput.toUpperCase();
 		
 		CloseableHttpClient client = HttpClients.createDefault();
 		String restApiService = propertiesUtil.getProps().getProperty("endpoint.api")+propertiesUtil.getProps().getProperty("return.chart.data");
@@ -212,7 +213,7 @@ public class PoloniexClientApi {
 			restApiService = restApiService.replaceAll("startend", lDateEnd.toString() );
 			
 			restApiService = restApiService.replaceAll("currency_pair", currencyPair);
-
+			System.out.println("apicall:" + restApiService);
 			HttpGet request = new HttpGet(restApiService);
 			HttpResponse response;
 			
@@ -224,6 +225,16 @@ public class PoloniexClientApi {
 			ObjectMapper objectMapper = new ObjectMapper();
 
 			List<ChartData> chartDataList = Arrays.asList(objectMapper.readValue(byteData, ChartData[].class));
+
+			//TODO make sure this logic is called anywhere a csv is generated as we want to always write the conversion values directly into the csv
+			if (conversionTimeSeries != null) {
+				int i = 0;
+				for (final ChartData chartData : chartDataList) {
+					final Tick conversionTick = conversionTimeSeries.getTick(i);
+					chartData.generateConvertedValues(conversionTick);
+					i++;
+				}
+			}
 
 			loggerManager.info("end returnChartData");
 			
@@ -267,9 +278,9 @@ public class PoloniexClientApi {
 
 			//TODO - temporary debugging code
 			if (currencyPair.equalsIgnoreCase("BTC_XEM") && i == 17) {
-				LoggerHelper.logObject(timeSeries.getTick(i));
+				LoggerHelper.logObject(timeSeries.getTick(i), "tickjson:");
 
-				LoggerHelper.logObject(timeSeries);
+				LoggerHelper.logObject(timeSeries, "timeseries");
 			}
 
 			//TODO - temporary debugging code
@@ -328,9 +339,9 @@ public class PoloniexClientApi {
 	public void execute(String fromDate, String toDate, final String conversionCurrency, final StrategyHolder strategyHolder, final List<String> currencyIncludeList, final List<String> currencySkipList)
 	{
 
-		final List<ChartData> conversionCurrencyChartData = generateChartData(fromDate, toDate, conversionCurrency);
+		final List<ChartData> conversionCurrencyChartData = generateChartData(fromDate, toDate, conversionCurrency, null);
 		fileManager.writeCSV(fromDate, toDate, conversionCurrency, conversionCurrencyChartData);
-		final TimeSeries conversionTimeSeries = CsvTicksLoader.loadSeriesFromChartData(conversionCurrencyChartData, false, null);
+		final TimeSeries conversionTimeSeries = CsvTicksLoader.loadSeriesFromChartData(conversionCurrencyChartData, null, false);
 
 		List<String> currencyList = this.returnCurrencyPair(conversionCurrency);
 		currencyList = GenericUtils.filterCurrencyList(currencyList, currencyIncludeList, currencySkipList);
@@ -343,8 +354,8 @@ public class PoloniexClientApi {
 					continue;
 				}
 
-				final List<ChartData> chartDataList = generateChartData(fromDate, toDate, currencyPair);
-				final TimeSeries timeSeries = CsvTicksLoader.loadSeriesFromChartData(chartDataList, true, conversionTimeSeries);
+				final List<ChartData> chartDataList = generateChartData(fromDate, toDate, currencyPair, conversionTimeSeries);
+				final TimeSeries timeSeries = CsvTicksLoader.loadSeriesFromChartData(chartDataList, conversionTimeSeries, true);
 
 				if (strategyHolder != null) {
 					runStrategy(currencyPair, timeSeries, chartDataList, strategyHolder);
@@ -360,11 +371,11 @@ public class PoloniexClientApi {
 
 	}
 
-	private List<ChartData> generateChartData(String fromDate, String toDate, final String currencyPair) {
+	private List<ChartData> generateChartData(final String fromDate, final String toDate, final String currencyPair, final TimeSeries conversionTimeSeries) {
 		List<ChartData> chartDataList = null;
 		int i = 0;
 		while (i < 4) {
-			chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair);
+			chartDataList = this.returnChartDataFromDateToDate(fromDate, toDate, currencyPair, conversionTimeSeries);
 			if (chartDataList != null) {
 				break;
 			}

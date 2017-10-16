@@ -69,7 +69,7 @@ public class TradingRecordHolder {
 
         loggerHelper = LoggerHelper.getInstance();
 
-        timeSeries = GenericUtils.loadTimeSeries(currencyPair, fromDate, toDate, true, this.conversionTimeSeries, fileManager, csvTicksLoader);
+        timeSeries = GenericUtils.loadTimeSeries(currencyPair, fromDate, toDate, true, fileManager, csvTicksLoader);
 
     }
 
@@ -104,8 +104,8 @@ public class TradingRecordHolder {
 
         //TODO - temporary debugging code
         if (currencyPair.equalsIgnoreCase("BTC_XEM") && curIter == 17) {
-            LoggerHelper.logObject(timeSeries.getTick(curIter));
-            LoggerHelper.logObject(timeSeries);
+            LoggerHelper.logObject(timeSeries.getTick(curIter), "tickjson");
+            LoggerHelper.logObject(timeSeries, "timeseries");
         }
 
         //TODO - temporary debugging code

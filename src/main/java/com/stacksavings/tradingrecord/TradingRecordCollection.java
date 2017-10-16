@@ -71,7 +71,7 @@ public class TradingRecordCollection {
 
         loggerHelper = LoggerHelper.getInstance();
 
-        conversionTimeSeries = GenericUtils.loadTimeSeries(this.conversionCurrency, fromDate, toDate, false, null, fileManager, csvTicksLoader);
+        conversionTimeSeries = GenericUtils.loadTimeSeries(this.conversionCurrency, fromDate, toDate, false, fileManager, csvTicksLoader);
 
         backTestTradingRecords = new HashMap<String, TradingRecord>();
 

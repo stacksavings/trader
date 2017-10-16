@@ -42,25 +42,25 @@ public class GenericUtils {
         return sellPrice;
     }
 
-    public static TimeSeries loadTimeSeries(final String currencyPair, final boolean useConversionSeries, final TimeSeries conversionTimeSeries, final FileManager fileManager, final CsvTicksLoader csvTicksLoader) {
+    public static TimeSeries loadTimeSeries(final String currencyPair, final boolean useConversionSeries, final FileManager fileManager, final CsvTicksLoader csvTicksLoader) {
         String fileNameCurrencyPair = null;
         TimeSeries timeSeries = null;
 
         fileNameCurrencyPair = fileManager.getFileNameByCurrency(currencyPair);
 
-        timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries, null);
+        timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, null);
 
         return timeSeries;
     }
 
-    public static TimeSeries loadTimeSeries(final String currencyPair, final String fromDate, final String toDate, final boolean useConversionSeries, final TimeSeries conversionTimeSeries, final FileManager fileManager, final CsvTicksLoader csvTicksLoader) {
+    public static TimeSeries loadTimeSeries(final String currencyPair, final String fromDate, final String toDate, final boolean useConversionSeries, final FileManager fileManager, final CsvTicksLoader csvTicksLoader) {
         String fileNameCurrencyPair = null;
         TimeSeries timeSeries = null;
 
         final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currencyPair);
         fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
 
-        timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, conversionTimeSeries, null);
+        timeSeries = csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, useConversionSeries, null);
 
         return timeSeries;
     }
@@ -73,7 +73,7 @@ public class GenericUtils {
         final File currencyPairFile = fileManager.getFileByName(fromDate, toDate, currencyPair);
         final String fileNameCurrencyPair = currencyPairFile.getAbsolutePath();
 
-        csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, false, null, buySellCacheForCurrency);
+        csvTicksLoader.loadSeriesByFileName(fileNameCurrencyPair, false, buySellCacheForCurrency);
 
         return  buySellCacheForCurrency;
     }

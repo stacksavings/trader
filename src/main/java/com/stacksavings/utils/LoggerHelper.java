@@ -125,10 +125,10 @@ public class LoggerHelper {
     }
 
     //TODO this is just initial proof of concept, should be re-worked later to be within regular logging flow
-    public static void logObject(final Object inputObject) {
+    public static void logObject(final Object inputObject, final String message) {
         try {
             Map object = BeanUtils.describe(inputObject);
-            System.out.println("**describe:");
+            System.out.println(message);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             System.out.println(gson.toJson(object));
         } catch (Exception e) {
