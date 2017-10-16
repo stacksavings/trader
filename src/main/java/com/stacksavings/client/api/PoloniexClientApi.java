@@ -213,7 +213,7 @@ public class PoloniexClientApi {
 			restApiService = restApiService.replaceAll("startend", lDateEnd.toString() );
 			
 			restApiService = restApiService.replaceAll("currency_pair", currencyPair);
-			System.out.println("apicall:" + restApiService);
+
 			HttpGet request = new HttpGet(restApiService);
 			HttpResponse response;
 			
@@ -282,9 +282,6 @@ public class PoloniexClientApi {
 
 				LoggerHelper.logObject(timeSeries, "timeseries");
 			}
-
-			//TODO - temporary debugging code
-			System.out.println("currency: " + currencyPair + " tick: " + i + " close price: " + timeSeries.getTick(i).getClosePrice() + " shouldEnter: " +shouldEnter+ " shouldExit: " +shouldExit);
 
 			chartData.setStrategyShouldEnter(shouldEnter);
 			chartData.setStrategyShouldExit(shouldExit);

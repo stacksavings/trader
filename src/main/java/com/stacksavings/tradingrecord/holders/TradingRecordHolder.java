@@ -108,9 +108,6 @@ public class TradingRecordHolder {
             LoggerHelper.logObject(timeSeries, "timeseries");
         }
 
-        //TODO - temporary debugging code
-        System.out.println("currency: " + currencyPair + " tick: " + curIter + " close price: " + timeSeries.getTick(curIter).getClosePrice() + " shouldEnter: " +shouldEnter);
-
         return shouldEnter;
 
     }
@@ -118,9 +115,6 @@ public class TradingRecordHolder {
     protected boolean runExitStrategy() {
 
         boolean shouldExit = strategyHolder.shouldExit(curIter, null);
-
-        //TODO - temporary debugging code
-        System.out.println("currency: " + currencyPair + " tick: " + curIter + " close price: " + timeSeries.getTick(curIter).getClosePrice() + " shouldExit: " +shouldExit);
 
         return shouldExit;
 
