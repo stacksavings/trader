@@ -106,14 +106,14 @@ public class BackTesterMain {
 	public static void main(String[] args) 
 	{
 
-		final boolean downloadData = true;
+		final boolean downloadData = false;
 		final boolean runBackTest = true;
 
 		//This is only for back testing:
 		// yyyy-MM-dd HH:mm:ss
 
 		//String fromDate = "2017-08-01 00:00:00";
-		String fromDate = "2017-09-28 00:00:00";
+		String fromDate = "2017-09-15 00:00:00";
 		// yyyy-MM-dd HH:mm:ss
 		String toDate = "2017-09-30 00:00:00";
 
@@ -143,6 +143,7 @@ public class BackTesterMain {
 		Parameters params = new Parameters();
 		params.setLiveTradeMode(false);
 		params.setProcessStopLoss(false);
+		params.setUseCachedBuySellSignals(true);
 		//if it is 0.97 this would be a 3% stop loss, for example
 		params.setStopLossRatio(Decimal.valueOf(0.97));
 		params.setApplyExperimentalIndicator(false);
@@ -168,12 +169,27 @@ public class BackTesterMain {
 
 		final StrategyHolder strategyHolder = new EMAStrategyHolder(9, 26);
 
+		//Run with buy / sell cache
 		Parameters params = getDefaultParameters1(fromDate, toDate, strategyHolder);
-		params.setUseCachedBuySellSignals(true);
 		parameters.add(params);
 
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
+		params.setProcessStopLoss(true);
 		parameters.add(params);
+
+		//no fees
+		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
+		params.setProcessStopLoss(true);
+		params.setFeeAmount(Decimal.valueOf(.0));
+		parameters.add(params);
+
+		//Run without buy / sell cache
+		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
+		params.setUseCachedBuySellSignals(false);
+		//parameters.add(params);
+
+
+
 
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		params.setCurrencyIncludeList(null);
