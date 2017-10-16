@@ -175,7 +175,7 @@ public class PoloniexClientApi {
 	 */
 	public List<ChartData> returnChartDataFromDateToDate(String fromDate, String toDate, String currencyPair)
 	{
-		loggerManager.info("begin returnChartData:"+currencyPair);
+		loggerManager.info("begin returnChartData: "+currencyPair);
 
 		currencyPair = currencyPair.toUpperCase();
 		
@@ -267,6 +267,8 @@ public class PoloniexClientApi {
 
 			//TODO - temporary debugging code
 			if (currencyPair.equalsIgnoreCase("BTC_XEM") && i == 17) {
+				LoggerHelper.logObject(timeSeries.getTick(i));
+
 				LoggerHelper.logObject(timeSeries);
 			}
 

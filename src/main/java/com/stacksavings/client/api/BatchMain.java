@@ -1,6 +1,5 @@
 package com.stacksavings.client.api;
 
-import com.stacksavings.indicators.AutomatedTrader;
 import com.stacksavings.utils.FileCleaner;
 
 import java.util.ArrayList;

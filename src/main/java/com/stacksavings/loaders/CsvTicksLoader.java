@@ -130,8 +130,7 @@ public class CsvTicksLoader {
         	}
 		}	
 
-		//TODO: name doesn't seem right
-        return new TimeSeries("apple_ticks", ticks);
+        return new TimeSeries("loadSeriesByFileName", ticks);
     }
 
     public static TimeSeries loadSeriesFromChartData(final List<ChartData> chartDataList, final boolean useConversionSeries, final TimeSeries conversionSeries) {
@@ -161,7 +160,7 @@ public class CsvTicksLoader {
             iter++;
         }
 
-        return new TimeSeries("chart_data", ticks);
+        return new TimeSeries("loadSeriesFromChartData", ticks);
     }
 
     private static double getValue(final String[] line, final int iter, final int index, final boolean useConversionSeries, final TimeSeries conversionSeries) {

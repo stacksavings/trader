@@ -104,6 +104,7 @@ public class TradingRecordHolder {
 
         //TODO - temporary debugging code
         if (currencyPair.equalsIgnoreCase("BTC_XEM") && curIter == 17) {
+            LoggerHelper.logObject(timeSeries.getTick(curIter));
             LoggerHelper.logObject(timeSeries);
         }
 
