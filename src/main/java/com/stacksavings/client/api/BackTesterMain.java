@@ -179,7 +179,6 @@ public class BackTesterMain {
 
 		//no fees
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
-		params.setProcessStopLoss(true);
 		params.setFeeAmount(Decimal.valueOf(.0));
 		parameters.add(params);
 
