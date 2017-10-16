@@ -2,7 +2,10 @@ package com.stacksavings.controller;
 
 import com.stacksavings.Parameter.Parameters;
 import com.stacksavings.client.api.PoloniexClientApi;
+import com.stacksavings.strategies.StrategyHolder;
 import com.stacksavings.tradingrecord.TradingRecordCollection;
+import com.stacksavings.tradingrecord.holders.TradingRecordHolder;
+import com.stacksavings.tradingrecord.holders.TradingRecordHolderFactory;
 import com.stacksavings.utils.LoggerHelper;
 import eu.verdelhan.ta4j.*;
 import eu.verdelhan.ta4j.indicators.trackers.AverageDirectionalMovementIndicator;
@@ -33,7 +36,7 @@ public class AutomatedTrader {
 	public AutomatedTrader(final Parameters parameters)
 	{
 
-		loggerHelper = new LoggerHelper();
+		loggerHelper = LoggerHelper.getInstance();
 		poloniexClientApi = PoloniexClientApi.getInstance();
 		this.parameters = parameters;
 
@@ -68,13 +71,28 @@ public class AutomatedTrader {
 			//logger.trace("******* BEGIN live trading iteration *******");
 		}
 
-
 		if(currencyPairList != null && currencyPairList.size() > 0) {
 
 			tradingRecordCollection = new TradingRecordCollection();
 			tradingRecordCollection.init(parameters.getConversionCurrency(), currencyPairList, parameters.getStrategyHolder(), parameters.getFromDate(), parameters.getToDate());
 
 			parameters.getAllocator().init(loggerHelper, tradingRecordCollection.getConversionTimeSeries(), currencyPairList);
+
+			for (final String currencyPair : currencyPairList) {
+
+				//TODO this seems to be possibly bad design, as it requires knowing implementation details about the other class
+				Decimal stopLossRatio = null;
+				if (parameters.shouldProccessStopLoss()) {
+					stopLossRatio = parameters.getStopLossRatio();
+				}
+
+				//TODO having this take the conversionTimeSeries from tradingRecordCollection does not seem to be proper design
+				final TradingRecordHolder tradingRecordHolder = TradingRecordHolderFactory.createTradingRecordHolder( currencyPair, stopLossRatio, parameters.getFeeAmount(), parameters.getFromDate(),  parameters.getToDate(),
+				parameters.getStrategyHolder(),  tradingRecordCollection.getConversionTimeSeries(),  parameters.isLiveTradeMode(), parameters.isUseCachedBuySellSignals());
+
+				tradingRecordCollection.addTradingRecordHolder(currencyPair, tradingRecordHolder);
+
+			}
 
 			//TODO there are more elegant ways to do this, tradingRecordCollection should't have to give out the info about total iterations, it could just give out the iter from each call of processIteration, for example
 			for (int i = 0; i < tradingRecordCollection.getTotalIterations(); i++) {

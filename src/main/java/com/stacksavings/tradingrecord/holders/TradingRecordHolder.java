@@ -14,25 +14,25 @@ import java.util.*;
 
 public class TradingRecordHolder {
 
-    private TimeSeries timeSeries;
-    private TimeSeries conversionTimeSeries;
-    private String currencyPair;
+    protected TimeSeries timeSeries;
+    protected TimeSeries conversionTimeSeries;
+    protected String currencyPair;
 
-    private StrategyHolder strategyHolder;
-    private Decimal feeAmount;
+    protected StrategyHolder strategyHolder;
+    protected Decimal feeAmount;
 
-    private PoloniexTraderClient poloniexTraderClient;
+    protected PoloniexTraderClient poloniexTraderClient;
 
-    private LoggerHelper loggerHelper;
+    protected LoggerHelper loggerHelper;
 
-    private CsvTicksLoader csvTicksLoader;
-    private FileManager fileManager;
+    protected CsvTicksLoader csvTicksLoader;
+    protected FileManager fileManager;
 
-    private TradingRecord tradingRecord;
+    protected TradingRecord tradingRecord;
 
-    private Decimal stopLossRatio;
+    protected Decimal stopLossRatio;
 
-    private int curIter;
+    protected int curIter;
 
     /**
      * When the program is run in trading mode it has to first check the poloniex orders from before and at least update the most recent one
@@ -63,15 +63,14 @@ public class TradingRecordHolder {
 
         tradingRecord = new TradingRecord();
 
-        loggerHelper = new LoggerHelper();
+        loggerHelper = LoggerHelper.getInstance();
 
         timeSeries = GenericUtils.loadTimeSeries(currencyPair, fromDate, toDate, true, this.conversionTimeSeries, fileManager, csvTicksLoader);
-
 
     }
 
 
-    //TODO implement this
+    //TODO implement this, this is just for logging in back-testing
     protected void updateActivePositionsAtIndex(final TradingRecord tradingRecord, final Map<Integer, Integer> activePositionsAtIndexTracker, final int iter, final Parameters parameters) {
 /*		if (!parameters.isLiveTradeMode()) {
 			if (!tradingRecord.isClosed()) {
@@ -180,46 +179,17 @@ public class TradingRecordHolder {
 
     public boolean enterTrade(final Decimal closePrice, final Decimal numberToBuy) {
 
-     //   if (!parameters.isLiveTradeMode()) {
         final Decimal buyPrice = GenericUtils.applyBuyFee(closePrice, feeAmount);
 
         final boolean entered = tradingRecord.enter(curIter, buyPrice, numberToBuy);
         return entered;
-
-/*        } else {
-
-            final Decimal buyPriceDecimal = closePrice;
-
-            final BigDecimal buyPrice = BigDecimal.valueOf(buyPriceDecimal.toDouble());
-
-            //TODO need to refactor this for live trading mode
-            //poloniexTraderClient.buy(currencyPair, buyPrice, BigDecimal.valueOf(numberToBuy.toDouble()), conversionTimeSeries);
-
-            //TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
-            entered = enterTrade(tradingRecord, closePrice, curIndex, numberToBuy, parameters);
-
-        }*/
 
     }
 
     protected boolean exitTrade(final String currencyPair, final TradingRecord tradingRecord, final Decimal closePrice,
                               final int curIndex, final Decimal numberToSell) {
 
-        boolean exited = false;
-    //    if (!parameters.isLiveTradeMode()) {
-            exited = exitTrade(tradingRecord, closePrice, curIndex, numberToSell);
-/*        } else {
-
-            final Decimal sellPriceDecimal = closePrice;
-
-            final BigDecimal sellPrice = BigDecimal.valueOf(sellPriceDecimal.toDouble());
-
-            poloniexTraderClient.sell(currencyPair, sellPrice, BigDecimal.valueOf(numberToSell.toDouble()), conversionTimeSeries);
-
-            //TODO, figure what to do on this, we aren't necessarily going to know right away if a trade actually was processed for real time trading
-            boolean exited = exitTrade(tradingRecord, closePrice, curIndex, numberToSell);
-
-        }*/
+        boolean exited = exitTrade(tradingRecord, closePrice, curIndex, numberToSell);
         return exited;
     }
 
@@ -237,7 +207,7 @@ public class TradingRecordHolder {
         //If stop loss is triggered, take this out of any future trading
         //This is an experiment to try removing ones that trigger a stop loss, the idea is that we may want to decide not to trade
         //certain currencies at all, as they may be too volatile for an algorithm
-        if (!tradingRecord.isClosed()) {
+        if (stopLossRatio != null && !tradingRecord.isClosed()) {
 
             final ClosePriceIndicator closePrice = new ClosePriceIndicator(timeSeries);
             final Rule stopLossRule = new StopLossRule(closePrice, stopLossRatio);

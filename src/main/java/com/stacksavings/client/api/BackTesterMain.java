@@ -170,7 +170,7 @@ public class BackTesterMain {
 
 		Parameters params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		params.setUseCachedBuySellSignals(true);
-		//parameters.add(params);
+		parameters.add(params);
 
 		params = getDefaultParameters1(fromDate, toDate, strategyHolder);
 		parameters.add(params);

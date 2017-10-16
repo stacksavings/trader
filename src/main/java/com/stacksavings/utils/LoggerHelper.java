@@ -18,6 +18,8 @@ public class LoggerHelper {
 
     private String runIdentifier;
 
+    private static LoggerHelper instance;
+
     private final String TAB = "    ";
 
     public LoggerHelper() {
@@ -109,6 +111,13 @@ public class LoggerHelper {
         loggerParameters.info(headersString);
         loggerParameters.info(logString);
 
+    }
+
+    public static LoggerHelper getInstance() {
+        if (instance == null) {
+            instance = new LoggerHelper();
+        }
+        return instance;
     }
 
 

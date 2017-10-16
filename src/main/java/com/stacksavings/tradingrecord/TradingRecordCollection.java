@@ -69,11 +69,9 @@ public class TradingRecordCollection {
         fileManager = FileManager.getInstance();
         csvTicksLoader = CsvTicksLoader.getInstance();
 
-        loggerHelper = new LoggerHelper();
+        loggerHelper = LoggerHelper.getInstance();
 
         conversionTimeSeries = GenericUtils.loadTimeSeries(this.conversionCurrency, fromDate, toDate, false, null, fileManager, csvTicksLoader);
-
-        createTradingRecordHolders(fromDate, toDate);
 
         backTestTradingRecords = new HashMap<String, TradingRecord>();
 
@@ -91,25 +89,6 @@ public class TradingRecordCollection {
             totalIterations = conversionTimeSeries.getTickCount();
      //   }
     }
-
-    //TODO this should be re-worked, probably shouldn't be in this class, as need to use inversion of control
-    public void createTradingRecordHolders(final String fromDate, final String toDate) {
-
-        //TODO this should possibly be a new class type that handles this creation
-        for (final String currencyPair : currencyPairList) {
-            final TradingRecordHolder tradingRecordHolder = new TradingRecordHolder();
-
-            //TODO set these from parameters, can be handled with refactoring for IOC
-            final Decimal stopLossRatio = Decimal.valueOf(3);
-            final Decimal feeAmount = Decimal.valueOf(.0025);
-
-            tradingRecordHolder.init(currencyPair, conversionTimeSeries, stopLossRatio, fromDate, toDate, strategyHolder, feeAmount);
-
-            tradingRecordHolderMap.put(currencyPair, tradingRecordHolder);
-
-        }
-    }
-
 
 
     public void processIteration(final int curIter) {
@@ -214,6 +193,10 @@ public class TradingRecordCollection {
 
     public List<TradingRecordHolder> getCurIterBuyTradingRecordHolders() {
         return new ArrayList<TradingRecordHolder>(curIterBuyTradingRecordHolders.values());
+    }
+
+    public void addTradingRecordHolder(final String currencyPair, final TradingRecordHolder tradingRecordHolder) {
+        tradingRecordHolderMap.put(currencyPair, tradingRecordHolder);
     }
 
 }
