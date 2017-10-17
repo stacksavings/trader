@@ -26,6 +26,7 @@ public class AllocatorBasic extends Allocator {
                 continue;
             }
 
+            /*
             final TradingRecord tradingRecord = tradingRecordHolder.getTradingRecord();
             final Tick tick = tradingRecordHolder.getCurrentTick();
 
@@ -37,7 +38,7 @@ public class AllocatorBasic extends Allocator {
 
             numberToBuy = availableFundsForTrade.dividedBy(tick.getClosePrice());
 
-            if (!availableFundsForTrade.isNegative()) {
+            if (numberToBuy.isGreaterThan(Decimal.ZERO)) {
                 boolean entered = tradingRecordHolder.enterTrade(tick.getClosePrice(), numberToBuy);
 
                 if (entered) {
@@ -47,6 +48,23 @@ public class AllocatorBasic extends Allocator {
                     //TODO this needs to be re-worked
                     //AutomatedTrader.updateActivePositionsAtIndex(tradingRecord, activePositionsAtIndexTracker, curIndex, parameters);
                 }
+            }*/
+
+            //TODO this needs to be the allocator basic strategy, the one above should be a differnet implementation as it is more complex and error prone
+            final TradingRecord tradingRecord = tradingRecordHolder.getTradingRecord();
+
+            Decimal availableAmount = Decimal.HUNDRED;
+            if (tradingRecord.getLastExit() != null) {
+                availableAmount = tradingRecord.getLastExit().getAmount().multipliedBy(tradingRecord.getLastExit().getPrice());
+            }
+            availableAmount = applyFee(availableAmount);
+
+            final Tick tick = tradingRecordHolder.getCurrentTick();
+            final Decimal numberToBuy = availableAmount.dividedBy(tick.getClosePrice());
+            boolean entered = tradingRecordHolder.enterTrade(tick.getClosePrice(), numberToBuy);
+            if (entered) {
+                Order order = tradingRecord.getLastEntry();
+                loggerHelper.logTickRow(currencyPair,"ENTER", order.getIndex(), order.getPrice().toDouble(), order.getAmount().toDouble());
             }
         }
     }

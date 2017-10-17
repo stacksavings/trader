@@ -95,17 +95,16 @@ public class AutomatedTrader {
 
 			if (!parameters.isLiveTradeMode()) {
 				double totalProfit = 0.00;
-
-				final Decimal startingAmount = parameters.getInitialCurrencyAmount().multipliedBy(Decimal.valueOf(currencyPairList.size()));
-
 				for (String currencyPair : currencyPairList) {
 					//TODO this should be re-factored to be more obejct oriented, this logic needs to be part of it's own class type
 					final TradingRecord tradingRecord = tradingRecordCollection.getTradingRecordHolder(currencyPair).getTradingRecord();
-					final TimeSeries timeSeries = tradingRecordCollection.getTradingRecordHolder(currencyPair).getTimeSeries();
-					totalProfit = totalProfit + logBackTestCurrencyTotals(currencyPair, tradingRecord, timeSeries);
+
+					//this doesn't take into the allocator account balances
+					totalProfit = totalProfit + logBackTestCurrencyTotals(currencyPair, tradingRecord);
 				}
 
-				final Decimal totalPercentGain = calculatePercentChange(startingAmount, startingAmount.plus(Decimal.valueOf(totalProfit)));
+				System.out.println("allocator btc balance: " + parameters.getAllocator().getBtcBalance());
+				System.out.println("allocator conversion series balance: " + parameters.getAllocator().getConversionCurrencyBalance());
 			}
 
 
@@ -127,13 +126,20 @@ public class AutomatedTrader {
 
 	}
 
-	//TODO this will be affected by the allocation, may need to be re-worked
-	private double logBackTestCurrencyTotals(final String currency, final TradingRecord tradingRecord, final TimeSeries series) {
+
+	//TODO this method is most likely not accurate as the allocation strategy doesn't guarantee it will use all funds from a sale to buy more of that currency later on so it could show a loss for that currency which may be inaccurate
+	//TODO this needs to be re-worked, it needs to use an object that wraps a time series and holds data about every trade made and can also track the currrent value, for example,
+	//if a trade is still active the only way to track this is from the time series to get the latest price
+	private double logBackTestCurrencyTotals(final String currency, final TradingRecord tradingRecord) {
 		Decimal endingFunds = parameters.getInitialCurrencyAmount();
 
 		Decimal totalProfit = Decimal.ZERO;
 		if (tradingRecord != null && tradingRecord.getLastExit() != null) {
 			endingFunds = tradingRecord.getLastExit().getPrice().multipliedBy(tradingRecord.getLastExit().getAmount());
+		}
+		//TODO this is a hack, it is not accurate, as it does not take the latest tick price from the series
+		else if (tradingRecord != null && tradingRecord.getLastEntry() != null) {
+			endingFunds = tradingRecord.getLastEntry().getPrice().multipliedBy(tradingRecord.getLastEntry().getAmount());
 		}
 
 		totalProfit = endingFunds.minus(parameters.getInitialCurrencyAmount());
@@ -149,14 +155,14 @@ public class AutomatedTrader {
 		return totalProfit.toDouble();
 	}
 
-	//TODO re-work to be part of appropriate class type
+	//TODO re-work to be part of appropriate class type, this should be a strategy
 	/**
 	 * Expirementing with indicators that can give some sort of threshold to determine whether a trade is actually worth making, related to the movement direction
 	 * @param series
 	 * @param index
 	 * @return
 	 */
-	private boolean checkIfAboveExperimentalIndicatorThreshold(final TimeSeries series, final int index) {
+/*	private boolean checkIfAboveExperimentalIndicatorThreshold(final TimeSeries series, final int index) {
 		if (!parameters.isApplyExperimentalIndicator()) {
 			return true;
 		}
@@ -168,7 +174,7 @@ public class AutomatedTrader {
 			return true;
 		}
 		return false;
-	}
+	}*/
 
 	//TODO re-work to be part of an appropriate class type
 	private void calculateOverallGainLoss(final Map<String, List<Decimal>> currencyTotals, final List<String> currenciesEndingWithLoss) {

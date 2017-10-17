@@ -34,9 +34,10 @@ public abstract class Allocator {
 
     }
 
-    protected Decimal getBtcBalance() {
+    public Decimal getBtcBalance() {
         return btcBalance;
     }
+
 
     protected Decimal withdrawAllBtc() {
         final Decimal withdrawAmt = btcBalance;
@@ -64,7 +65,7 @@ public abstract class Allocator {
         btcBalance = btcAmountToAdd.plus(btcBalance);
     }
 
-    protected Decimal getConversionCurrencyBalance() {
+    public Decimal getConversionCurrencyBalance() {
         return conversionCurrencyBalance;
     }
 
